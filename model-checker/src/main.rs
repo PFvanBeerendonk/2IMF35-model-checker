@@ -2,19 +2,26 @@ use std::fs;
 use clap::Parser;
 
 /// definition of ARGS 
-// e.g.: `cargo run -- input/simple.ltl`
-#[derive(Parser)]
-struct Cli {
+// e.g.: `cargo run -- --file input/simple.ltl` --extended
+//       `main.exe -f input/simple.ltl -e`
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
     /// The path to the ltl file to read
-    ltl_file: std::path::PathBuf,
+    #[arg(short, long)]
+    file: std::path::PathBuf,
+
+    #[arg(short, long, default_value_t=false)]
+    extended: bool,
 }
 
+
 fn main() {
-    let args = Cli::parse();
+    let args: Args = Args::parse();
 
-    read_ltl_file(args.ltl_file);
+    read_ltl_file(args.file);
 
-    println!("Terminated Succesfully");
+    println!("\nTerminated Succesfully");
 }
 
 fn read_ltl_file(file_path: std::path::PathBuf) {
