@@ -1,29 +1,23 @@
 #[derive(Debug)]
 pub enum Operator {
     SimpleFalse, // f = false
-    SimpleTrue, // f = true
-    EqualP, // f = p
+    SimpleTrue,  // f = true
+    Predicate(String), // f = p
     Negate, // f = ¬g
     Conjunction, // f = g1 ∧ g2
     Disjunction, // f = g1 ∨ g2
-    DiamondModality, // f = [a]g
-    BoxModality, // f = <a>g
+    DiamondModality(String, Box<Node>), // f = [a]g
+    BoxModality(String, Box<Node>), // f = <a>g
     LeastFixpoint, // mu
     GreatestFixpoint, // nu
 }
 
+#[derive(Debug)]
 pub enum Node {
     Variable(String),
     Operator(Operator),
-    UnaryExpr {
-        op: Operator,
-        child: Box<Node>,
-    },
-    BinaryExpr {
-        op: Operator,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
-    },
+    UnaryExpr { op: Operator, child: Box<Node> },
+    BinaryExpr { op: Operator, lhs: Box<Node>, rhs: Box<Node> },
 }
 
 pub struct Formula {
@@ -39,116 +33,106 @@ pub struct Formula {
     //         else if f = νXi .g (Xi ) then
 }
 
-fn parse_formula(formula: &str) -> Node {
-    let mut iter = formula.chars().peekable();
-    parse_expression(&mut iter)
-}
+fn parse_logic(expression: &str) {
+    let expression = expression.trim();
 
-fn parse_expression(iter: &mut std::iter::Peekable<std::str::Chars>) -> Node {
-    let mut node = parse_term(iter);
+    if !expression.contains("(") {
+        println!("TODO {}", expression);
+    } else if expression.starts_with("(")  {
+        println!("the string {}", expression);
+        let (first_part, second_part) = get_junctions(expression);
+        println!("Part1: {:}, Part2: {:}", first_part, second_part);
+        parse_logic(first_part);
+        parse_logic(second_part);
+    } else {
+        if let Some(extracted) = extract_text_between_brackets(expression) {
+            println!("inner {}", extracted); // Output: this(getThis)else
+            parse_logic(extracted);
+        };
+        if let Some(extracted) = extract_text_before_brackets(expression) {
+            println!("outer {}", extracted); // Output: this(getThis)else
+            parse_logic(extracted);
+        };
 
-    loop {
-        match iter.peek() {
-            Some(&c) if c == '&' || c == '|' => {
-                iter.next(); // Consume the operator ('&' or '|')
-                let op = match c {
-                    '&' => Operator::Conjunction,
-                    '|' => Operator::Disjunction,
-                    _ => unreachable!(),
-                };
-                let rhs = parse_term(iter);
-                node = Node::BinaryExpr {
-                    op,
-                    lhs: Box::new(node),
-                    rhs: Box::new(rhs),
-                };
-            }
-            _ => break,
-        }
-    }
-
-    node
-}
-
-fn parse_term(iter: &mut std::iter::Peekable<std::str::Chars>) -> Node {
-    match iter.peek().cloned() {
-        Some('[') => {
-            iter.next(); // Consume '['
-            let op = match iter.next() {
-                Some('i') => Operator::DiamondModality,
-                _ => panic!("Invalid operator"),
-            };
-            let var = parse_variable(iter);
-            Node::UnaryExpr {
-                op,
-                child: Box::new(Node::Variable(var)),
-            }
-        }
-        Some('m') => {
-            iter.next(); // Consume 'm'
-            let op = Operator::LeastFixpoint;
-            let var = parse_variable(iter);
-            Node::UnaryExpr {
-                op,
-                child: Box::new(Node::Variable(var)),
-            }
-        }
-        Some('n') => {
-            iter.next(); // Consume 'n'
-            let op = Operator::GreatestFixpoint;
-            let var = parse_variable(iter);
-            Node::UnaryExpr {
-                op,
-                child: Box::new(Node::Variable(var)),
-            }
-        }
-        Some('t') => {
-            iter.next(); // Consume 't'
-            Node::Operator(Operator::SimpleTrue)
-        }
-        Some('f') => {
-            iter.next(); // Consume 'f'
-            Node::Operator(Operator::SimpleFalse)
-        }
-        Some(_) => {
-            let var = parse_variable(iter);
-            Node::Variable(var)
-        }
-        None => panic!("Unexpected end of formula"),
     }
 }
 
-fn parse_variable(iter: &mut std::iter::Peekable<std::str::Chars>) -> String {
-    let mut var = String::new();
-    while let Some(&c) = iter.peek() {
-        if c.is_alphanumeric() {
-            var.push(c);
-            iter.next();
-        } else {
-            break;
-        }
-    }
-    var
+fn extract_text_before_brackets(text: &str) -> Option<&str> {
+    let before_brackets = text.splitn(2, '(').next()?;
+
+    Some(before_brackets)
 }
 
-fn print_ast(node: &Node, indent: usize) {
-    match node {
-        Node::Variable(var) => println!("{:indent$}Variable({})", "", var, indent = indent),
-        Node::Operator(op) => println!("{:indent$}Operator({:?})", "", op, indent = indent),
-        Node::UnaryExpr { op, child } => {
-            println!("{:indent$}UnaryExpr({:?})", "", op, indent = indent);
-            print_ast(child, indent + 4);
-        }
-        Node::BinaryExpr { op, lhs, rhs } => {
-            println!("{:indent$}BinaryExpr({:?})", "", op, indent = indent);
-            print_ast(lhs, indent + 4);
-            print_ast(rhs, indent + 4);
-        }
-    }
+fn extract_text_between_brackets(text: &str) -> Option<&str> {
+    let start_idx = text.find('(')?;
+    let mut open_count = 0;
+
+    let end_idx = text[start_idx..]
+        .char_indices()
+        .find_map(|(i, c)| {
+            if c == '(' {
+                open_count += 1;
+            } else if c == ')' {
+                open_count -= 1;
+                if open_count == 0 {
+                    return Some(start_idx + i);
+                }
+            }
+            None
+        })?;
+
+    Some(&text[start_idx+1..=end_idx-1])
 }
 
+fn get_strings_between_brackets(s: &str) -> Option<&str> {
+    let mut stack = Vec::new();
+    let mut open_index = None;
+    let mut close_index = None;
 
-impl Formula{
+    for (i, c) in s.char_indices() {
+        match c {
+            '(' => {
+                if stack.is_empty() {
+                    open_index = Some(i);
+                }
+                stack.push(c);
+            }
+            ')' => {
+                if let Some('(') = stack.pop() {
+                    if stack.is_empty() {
+                        close_index = Some(i);
+                        break;
+                    }
+                }
+            }
+            _ => continue,
+        }
+    }
+
+    if let (Some(open), Some(close)) = (open_index, close_index) {
+        if open > 0 {
+            if Some(&s[open - 1..close])?.starts_with(".") {
+                // we know that it starts as a fixpoint (muV./nuV.) where V is a var
+                return Some(&s[open - 4..close]);
+            }
+        }
+        return Some(&s[open + 1..close]);
+    }
+    None
+}
+
+fn get_junctions(s: &str) -> (&str, &str) {
+    if let Some(first) = get_strings_between_brackets(s) {
+        println!("First string between brackets: {}", first);
+        if let Some(second) = get_strings_between_brackets(&s[first.len()..]) {
+            println!("Second string between brackets in the previous section: {}", second);
+            return (first, second);
+        }
+    }
+    panic!("No conjunction or disjunction found");
+}
+
+impl Formula {
     pub fn new(input_formula: String) -> Self {
         println!("Creating new formula");
         
@@ -163,8 +147,8 @@ impl Formula{
 
         println!("{}", formula);
 
-        let parsed_formula = parse_formula(&formula);
-        print_ast(&parsed_formula, 0);
+        let parsed_formula = parse_logic(&formula);
+        println!("{:?}", parsed_formula);
         
         return Self{
             RootNode: ("TODO").to_string(),
