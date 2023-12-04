@@ -1,6 +1,13 @@
 use std::fs;
 use clap::Parser;
 
+// local imports
+mod emerson_lei;
+mod types;
+
+use emerson_lei::{execute, execute_extended};
+use types::ltl::Ltl;
+use types::formula::Formula;
 // END IMPORT
 
 
@@ -23,9 +30,21 @@ struct Args {
 fn main() {
     let args: Args = Args::parse();
 
+    let f: Formula = Formula {temp:11};
+    let ltl:Ltl = Ltl {temp: 1};
+    
     read_ltl_file(args.file);
 
+    
+    if args.extended {
+        execute_extended(f, ltl);
+
+    } else {
+        execute(f, ltl);
+    }
+
     println!("\nTerminated Succesfully");
+
 }
 
 
@@ -43,5 +62,6 @@ fn read_ltl_file(file_path: std::path::PathBuf) {
         .expect("Should have been able to read the file");
 
     println!("With text:\n{contents}");
-
+    // let x: Ltl = 11;
+    // return x;
 }
