@@ -61,10 +61,10 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
     let contents: String = fs::read_to_string(file_path)
         .expect("Should have been able to read the file");
 
-    let mut parts = contents.lines();
+    let mut lines = contents.lines();
 
     // Initialize header, e.g. "des (123,456,789)     "
-    let first_line = parts.nth(0)
+    let first_line = lines.nth(0)
         .expect("File cannot be empty");
 
     let (des, last) = first_line.split_at(5);
@@ -75,19 +75,37 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
     let seconds: Vec<&str> = last.split(")").collect();
     let nums: Vec<&str> = seconds[0].split(",").collect();
 
-    let ltl: Ltl = Ltl::new(
-        nums[0].parse::<i64>().unwrap(), 
-        nums[1].parse::<i64>().unwrap(), 
-        nums[2].parse::<i64>().unwrap()
+    let mut ltl: Ltl = Ltl::new(
+        to_int64(nums[0]),
+        to_int64(nums[1]), 
+        to_int64(nums[2])
     );
 
-    // TODO transitions
-    // for part in parts {
-    //     println!("AAA:{}", part)
-    // }
+    // initialize transitions
 
+    for part in lines.skip(1) {
+        let (start, last) = part.split_at(1);
+        if "(" != start {
+            !panic!("Line '{}' did not start with '('", part)
+        }
+        let seconds: Vec<&str> = last.split(")").collect();
+        let nums: Vec<&str> = seconds[0].split(",").collect();
+        let label: &str = nums[1].split("\"").nth(1)
+            .expect("No label found in {part}");
+
+        ltl = Ltl::add_transition(
+            ltl, 
+            to_int64(nums[0]), 
+            label, 
+            to_int64(nums[2])
+        );
+    }
 
     return ltl;
+}
+
+fn to_int64(f: &str) -> i64 {
+    return f.parse::<i64>().unwrap()
 }
 
 /**
