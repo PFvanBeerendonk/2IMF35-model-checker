@@ -12,7 +12,7 @@ use types::formula::Formula;
 
 
 /// definition of ARGS 
-// e.g.: `cargo run -- --aut-file ../input/part2-1/dining_2.aut --mcf-file ../input/part2-1/invariantly_inevitably_eat.mcf --improved
+// e.g.: `cargo run -- --aut-file ../input/part2-1/dining_2.aut --mcf-file ../input/part2-1/invariantly_inevitably_eat.mcf --improved`
 //       `main.exe --aut-file ../input/part2-1/dining_2.aut --mcf-file ../input/part2-1/invariantly_inevitably_eat.mcf -i`
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -58,17 +58,36 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
         panic!("File {:?} should have been of type .aut", file_path);
     }
 
-    println!("Unpacking file {:?}", file_path);
-
-    let contents = fs::read_to_string(file_path)
+    let contents: String = fs::read_to_string(file_path)
         .expect("Should have been able to read the file");
 
-    println!("With text:\n{contents}");
+    let mut parts = contents.lines();
+
+    // Initialize header, e.g. "des (123,456,789)     "
+    let first_line = parts.nth(0)
+        .expect("File cannot be empty");
+
+    let (des, last) = first_line.split_at(5);
+    if "des (" != des {
+        panic!(".aut file should contain `des (...)` as first line, file started with {}", des);
+    }
+
+    let seconds: Vec<&str> = last.split(")").collect();
+    let nums: Vec<&str> = seconds[0].split(",").collect();
+
+    let ltl: Ltl = Ltl::new(
+        nums[0].parse::<i64>().unwrap(), 
+        nums[1].parse::<i64>().unwrap(), 
+        nums[2].parse::<i64>().unwrap()
+    );
+
+    // TODO transitions
+    // for part in parts {
+    //     println!("AAA:{}", part)
+    // }
 
 
-    // TODO: return LTL data struct
-    let x: Ltl = Ltl {temp: 1};
-    return x;
+    return ltl;
 }
 
 /**
