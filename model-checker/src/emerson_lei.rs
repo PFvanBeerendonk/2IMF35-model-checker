@@ -8,7 +8,7 @@ pub fn execute(f: Formula, instance:Ltl) {
     init(f, instance)
 }
 
-pub fn execute_extended(f: Formula, instance:Ltl) {
+pub fn execute_improved(f: Formula, instance:Ltl) {
 
 }
 
@@ -19,4 +19,5 @@ fn init(f:Formula, instance:Ltl) {
 }
 
 fn eval(f:Formula, instance:Ltl) {
+
 }
