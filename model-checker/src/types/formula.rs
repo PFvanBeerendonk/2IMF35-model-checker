@@ -2,22 +2,21 @@
 pub enum Operator {
     SimpleFalse, // f = false
     SimpleTrue,  // f = true
-    Predicate(String), // f = p
+    StateLabel, // f = p NEEDED?
     Negate, // f = ¬g
     Conjunction, // f = g1 ∧ g2
     Disjunction, // f = g1 ∨ g2
-    DiamondModality(String, Box<Node>), // f = [a]g
-    BoxModality(String, Box<Node>), // f = <a>g
-    LeastFixpoint, // mu
-    GreatestFixpoint, // nu
+    DiamondModality, // f = [a]g
+    BoxModality, // f = <a>g
+    LeastFixpoint, // mu X
+    GreatestFixpoint, // nu X
 }
 
 #[derive(Debug)]
 pub enum Node {
-    Variable(String),
-    Operator(Operator),
-    UnaryExpr { op: Operator, child: Box<Node> },
-    BinaryExpr { op: Operator, lhs: Box<Node>, rhs: Box<Node> },
+    Variable(String), // X / Y / etc.
+    UnaryExpr { op: Operator, child: Box<Node> }, // SimpleFalse, SimpleTrue, Negate
+    BinaryExpr { op: Operator, lhs: Box<Node>, rhs: Box<Node> }, 
 }
 
 pub struct Formula {
@@ -33,28 +32,47 @@ pub struct Formula {
     //         else if f = νXi .g (Xi ) then
 }
 
-fn parse_logic(expression: &str) {
+fn parse_logic(expression: &str) -> Node {
     let expression = expression.trim();
-
+    let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
         println!("TODO {}", expression);
     } else if expression.starts_with("(")  {
-        println!("the string {}", expression);
-        let (first_part, second_part) = get_junctions(expression);
-        println!("Part1: {:}, Part2: {:}", first_part, second_part);
+        let (first_part, operator, second_part) = get_junctions(expression);
+        println!("Part1: {:}, Part2: {:}, Operator {:?}", first_part, second_part, operator);
         parse_logic(first_part);
         parse_logic(second_part);
     } else {
-        if let Some(extracted) = extract_text_between_brackets(expression) {
-            println!("inner {}", extracted); // Output: this(getThis)else
-            parse_logic(extracted);
-        };
+        let mut lhs = Node::Variable("TODO".to_string());
         if let Some(extracted) = extract_text_before_brackets(expression) {
-            println!("outer {}", extracted); // Output: this(getThis)else
-            parse_logic(extracted);
+            // do mu, nu, <>, [], &&, and ||
+            if extracted.starts_with("&&") {
+                operator = Operator::Conjunction;
+            } else if extracted.starts_with("||") {
+                operator = Operator::Disjunction;
+            } else if extracted.starts_with("[") {
+                operator = Operator::DiamondModality;
+            } else if extracted.starts_with("<") {
+                operator = Operator::BoxModality;
+                // lhs = Node::Variable(extracted[0..3].to_string());
+            } else if extracted.starts_with("||") {
+                operator = Operator::Disjunction;
+            } else if extracted.starts_with("mu") {
+                operator = Operator::LeastFixpoint;
+                lhs = Node::Variable(extracted[2..3].to_string());
+            } else if extracted.starts_with("nu") {
+                operator = Operator::GreatestFixpoint;
+                lhs = Node::Variable(extracted[2..3].to_string());
+            }
+            println!("outer {}, operator {:?}, lhs {:?}", extracted, operator, lhs);
+            // parse_logic(extracted);
         };
-
+        if let Some(extracted) = extract_text_between_brackets(expression) {
+            println!("inner {}", extracted);
+            return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted)) };
+        };
     }
+    return Node::Variable("ERROR".to_string());
 }
 
 fn extract_text_before_brackets(text: &str) -> Option<&str> {
@@ -121,12 +139,18 @@ fn get_strings_between_brackets(s: &str) -> Option<&str> {
     None
 }
 
-fn get_junctions(s: &str) -> (&str, &str) {
+fn get_junctions<'a>(s: &'a str) -> (&'a str, Operator, &'a str) {
     if let Some(first) = get_strings_between_brackets(s) {
-        println!("First string between brackets: {}", first);
+        let mut operator = Operator::SimpleFalse;
+        if s[first.len()+2..].starts_with("&&") {
+            operator = Operator::Conjunction;
+        } else if s[first.len()+2..].starts_with("||") {
+            operator = Operator::Disjunction;
+        } else{
+            println!("There was no operator found at the start of the string {}", &s[first.len()..]);
+        }
         if let Some(second) = get_strings_between_brackets(&s[first.len()..]) {
-            println!("Second string between brackets in the previous section: {}", second);
-            return (first, second);
+            return (first, operator, second);
         }
     }
     panic!("No conjunction or disjunction found");
