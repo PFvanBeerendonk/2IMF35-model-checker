@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Operator {
     SimpleFalse, // f = false
     SimpleTrue,  // f = true
