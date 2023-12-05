@@ -40,8 +40,7 @@ fn parse_logic(expression: &str) -> Node {
     } else if expression.starts_with("(")  {
         let (first_part, operator, second_part) = get_junctions(expression);
         println!("Part1: {:}, Part2: {:}, Operator {:?}", first_part, second_part, operator);
-        parse_logic(first_part);
-        parse_logic(second_part);
+        return Node::BinaryExpr { op: operator, lhs: Box::new(parse_logic(first_part)), rhs: Box::new(parse_logic(second_part)) };
     } else {
         let mut lhs = Node::Variable("TODO".to_string());
         if let Some(extracted) = extract_text_before_brackets(expression) {
