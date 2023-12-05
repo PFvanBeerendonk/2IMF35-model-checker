@@ -117,6 +117,9 @@ fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
     }
 
 
-    let f: Formula = Formula {temp:11};
+    let contents: String = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    let f: Formula = Formula::new(contents);
     return f; 
 }
