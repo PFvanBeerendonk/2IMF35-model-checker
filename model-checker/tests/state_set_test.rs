@@ -2,8 +2,8 @@
 
 #[cfg(test)]
 mod test_union {
-    use model_checker::types::ltl::StateSet;
-    use model_checker::types::ltl::Union;
+    use model_checker::types::state_set::StateSet;
+    use model_checker::types::state_set::Union;
 
     #[test]
     fn test_union_all_states() {
@@ -27,8 +27,8 @@ mod test_union {
 }
 
 mod test_intersect {
-    use model_checker::types::ltl::StateSet;
-    use model_checker::types::ltl::Intersect;
+    use model_checker::types::state_set::StateSet;
+    use model_checker::types::state_set::Intersect;
 
     #[test]
     fn test_intersect_all_states() {
