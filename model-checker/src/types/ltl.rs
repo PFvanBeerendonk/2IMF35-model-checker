@@ -1,4 +1,5 @@
 use array_tool::vec::Union as ATUnion;
+use array_tool::vec::Intersect as ATIntersect;
 
 // Specify custom type `Ltl`
 // follows `https://www.mcrl2.org/web/user_manual/tools/lts.html`
@@ -95,6 +96,25 @@ impl Union for StateSet {
 
         return StateSet{all_states:false,  states:Some(return_value)} 
     }
+}
 
-    
+pub trait Intersect {
+    fn intersect(&self, other: Self) -> Self;
+}
+impl Intersect for StateSet {
+    fn intersect(&self, r:StateSet) -> StateSet {
+        if self.all_states {
+            return r;
+        }
+        if r.all_states {
+            return StateSet{all_states:self.all_states, states:self.states.clone()};
+        }
+        if self.states == None || r.states == None {
+            panic!("If all_states is false, states cannot be None")
+        }
+
+        let return_value = self.states.clone().unwrap().intersect(r.states.unwrap());
+
+        return StateSet{all_states:false,  states:Some(return_value)}
+    }
 }

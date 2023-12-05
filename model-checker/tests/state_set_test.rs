@@ -1,7 +1,7 @@
 
 
 #[cfg(test)]
-mod tests {
+mod test_union {
     use model_checker::types::ltl::StateSet;
     use model_checker::types::ltl::Union;
 
@@ -26,3 +26,27 @@ mod tests {
     }
 }
 
+mod test_intersect {
+    use model_checker::types::ltl::StateSet;
+    use model_checker::types::ltl::Intersect;
+
+    #[test]
+    fn test_intersect_all_states() {
+        let a = StateSet{all_states:true,  states:None} ;
+        let b = StateSet{all_states:false,  states:Some(vec![0, 1, 2])};
+        
+        let result = a.intersect(b) ;
+        assert_eq!(result.all_states, false);
+        assert_eq!(result.states, Some(vec![0, 1, 2]));
+    }
+
+    #[test]
+    fn test_intersect_some_states() {
+        let a = StateSet{all_states:false,  states:Some(vec![0, 1, 2])} ;
+        let b = StateSet{all_states:false,  states:Some(vec![0, 3, 4])};
+        
+        let result = a.intersect(b) ;
+        assert_eq!(result.all_states, false);
+        assert_eq!(result.states, Some(vec![0]));
+    }
+}
