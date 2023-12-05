@@ -36,6 +36,26 @@ fn parse_logic(expression: &str) -> Node {
     let expression = expression.trim();
     let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
+        println!("wtffff zit && in toch {}", expression);
+        if expression.contains("&&") {
+            operator = Operator::Conjunction;
+            if let Some(index) = expression.find("&&") {
+                return Node::BinaryExpr {
+                    op: operator,
+                    lhs: Box::new(Node::Variable(expression[..index].to_string())),
+                    rhs: Box::new(Node::Variable(expression[index + 2..].to_string()))
+                }
+            }
+        } else if expression.contains("||") {
+            operator = Operator::Disjunction;
+            if let Some(index) = expression.find("||") {
+                return Node::BinaryExpr {
+                    op: operator,
+                    lhs: Box::new(Node::Variable(expression[..index].to_string())),
+                    rhs: Box::new(Node::Variable(expression[index + 2..].to_string()))
+                }
+            }
+        }
         println!("TODO {}", expression);
     } else if expression.starts_with("(")  {
         let (first_part, operator, second_part) = get_junctions(expression);
@@ -43,28 +63,40 @@ fn parse_logic(expression: &str) -> Node {
         return Node::BinaryExpr { op: operator, lhs: Box::new(parse_logic(first_part)), rhs: Box::new(parse_logic(second_part)) };
     } else {
         let mut lhs = Node::Variable("TODO".to_string());
+        let and_index = check_junction_before_paren(expression, "&&");
+        let or_index = check_junction_before_paren(expression, "||");
+        if and_index != usize::MAX {
+            operator = Operator::Conjunction;
+            return Node::BinaryExpr {
+                op: operator,
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()))),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string())))
+            }
+        } else if or_index != usize::MAX {
+            operator = Operator::Disjunction;
+            return Node::BinaryExpr {
+                op: operator,
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()))),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string())))
+            }
+        } 
         if let Some(extracted) = extract_text_before_brackets(expression) {
             // do mu, nu, <>, [], &&, and ||
-            if extracted.starts_with("&&") {
-                operator = Operator::Conjunction;
-            } else if extracted.starts_with("||") {
-                operator = Operator::Disjunction;
-            } else if extracted.starts_with("[") {
-                operator = Operator::DiamondModality;
-            } else if extracted.starts_with("<") {
-                operator = Operator::BoxModality;
-                // lhs = Node::Variable(extracted[0..3].to_string());
-            } else if extracted.starts_with("||") {
-                operator = Operator::Disjunction;
-            } else if extracted.starts_with("mu") {
+            if extracted.starts_with("mu") {
                 operator = Operator::LeastFixpoint;
                 lhs = Node::Variable(extracted[2..3].to_string());
             } else if extracted.starts_with("nu") {
                 operator = Operator::GreatestFixpoint;
                 lhs = Node::Variable(extracted[2..3].to_string());
+            } else if extracted.starts_with("[") {
+                operator = Operator::DiamondModality;
+            } else if extracted.starts_with("<") {
+                operator = Operator::BoxModality;
+                // lhs = Node::Variable(extracted[0..3].to_string());
+            } else {
+                println!("outer {}, operator {:?}, lhs {:?}", extracted, operator, lhs);
+                // parse_logic(extracted);
             }
-            println!("outer {}, operator {:?}, lhs {:?}", extracted, operator, lhs);
-            // parse_logic(extracted);
         };
         if let Some(extracted) = extract_text_between_brackets(expression) {
             println!("inner {}", extracted);
@@ -153,6 +185,28 @@ fn get_junctions<'a>(s: &'a str) -> (&'a str, Operator, &'a str) {
         }
     }
     panic!("No conjunction or disjunction found");
+}
+
+fn check_junction_before_paren(input_string: &str, str_to_check: &str) -> usize {
+    if let Some(pos) = input_string.find('(') {
+        let substring_before_paren = &input_string[..pos];
+        if let Some(index) = substring_before_paren.find(str_to_check) {
+            return index as usize;
+        }
+    }
+    usize::MAX
+}
+
+fn remove_brackets(mut input_string: String) -> String {
+    if let Some(first_char) = input_string.chars().next() {
+        if let Some(last_char) = input_string.chars().last() {
+            if first_char == '(' && last_char == ')' {
+                input_string.pop(); // Remove last character
+                input_string.remove(0); // Remove first character
+            }
+        }
+    }
+    input_string
 }
 
 impl Formula {
