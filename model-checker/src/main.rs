@@ -2,10 +2,10 @@ use std::fs;
 use clap::Parser;
 
 // local imports
-mod emerson_lei;
+mod solver;
 mod types;
 
-use emerson_lei::{execute, execute_improved};
+use solver::{execute, execute_improved};
 use types::ltl::Ltl;
 use types::formula::Formula;
 // END IMPORT
@@ -117,6 +117,9 @@ fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
     }
 
 
-    let f: Formula = Formula {temp:11};
+    let contents: String = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    let f: Formula = Formula::new(contents);
     return f; 
 }
