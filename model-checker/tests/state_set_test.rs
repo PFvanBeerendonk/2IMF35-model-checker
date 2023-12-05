@@ -14,5 +14,15 @@ mod tests {
         assert_eq!(result.all_states, true);
         assert_eq!(result.states, None);
     }
+
+    #[test]
+    fn test_union_some_states() {
+        let a = StateSet{all_states:false,  states:Some(vec![0, 1, 2])} ;
+        let b = StateSet{all_states:false,  states:Some(vec![0, 3, 4])};
+        
+        let result = a.union(b) ;
+        assert_eq!(result.all_states, false);
+        assert_eq!(result.states, Some(vec![0,1,2,3,4]));
+    }
 }
 

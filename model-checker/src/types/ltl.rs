@@ -53,7 +53,7 @@ impl Ltl{
 
     
     // Get S
-    pub fn getAllStates() -> StateSet {
+    pub fn get_all_states() -> StateSet {
         return StateSet{all_states:true,  states:None};
     }
 
