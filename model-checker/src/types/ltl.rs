@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 pub struct Ltl {
     pub first_state: i64,
-    pub transitions: HashMap< i64, HashMap< String, Vec<i64> > >, 
+    pub transitions: HashMap< i64, HashMap< String, HashSet<i64> > >, 
     // state -> state_map where state_map: label -> [state]
 
     pub nr_of_states: i64,
@@ -25,7 +25,7 @@ impl Ltl{
      * 
      */
     pub fn new(first_state: i64, nr_of_transitions: i64, nr_of_states: i64) -> Self{
-        let mut transition_dict: HashMap<i64, HashMap< String, Vec<i64>>> = HashMap::new();
+        let mut transition_dict: HashMap<i64, HashMap< String, HashSet<i64>>> = HashMap::new();
         transition_dict.reserve(nr_of_transitions as usize);
 
         return Self{
@@ -51,27 +51,27 @@ impl Ltl{
         let mut transition_dict = self.transitions.clone();
         if transition_dict.contains_key(&start_state) {
             // if start_state already in transition dict, add the given transition to its hashmap
-            let mut state_map: HashMap< String, Vec<i64>> = transition_dict.get(&start_state)
+            let mut state_map: HashMap< String, HashSet<i64>> = transition_dict.get(&start_state)
                 .expect("Won't happen, see contains_key() above").clone();
             if state_map.contains_key(&String::from(label)) {
                 // State map already contains this transition, 
-                let mut end_states: Vec<i64> = state_map.get(&String::from(label))
+                let mut end_states: HashSet<i64> = state_map.get(&String::from(label))
                 .expect("Won't happen, see contains_key() above").clone();
                 if !end_states.contains(&end_state) {
                     // this state is not yet in end_states, add it to the vector
-                    end_states.push(end_state);
+                    end_states.insert(end_state);
                 }
                 state_map.insert(String::from(label), end_states);
                 
             } else {
-                state_map.insert(String::from(label), vec![end_state]);
+                state_map.insert(String::from(label), HashSet::from([end_state]));
             }
             transition_dict.insert(start_state, state_map);
 
         } else {
             // else initialize the transition ==> insert (start_state, HashMap({label, [end_state]}))
-            let mut state_map: HashMap< String, Vec<i64>> = HashMap::new();
-            state_map.insert(String::from(label), vec![end_state]);
+            let mut state_map: HashMap< String, HashSet<i64>> = HashMap::new();
+            state_map.insert(String::from(label),  HashSet::from([end_state]));
             transition_dict.insert(start_state, state_map);
         }
 
@@ -101,15 +101,33 @@ impl Ltl{
      * Get [[ [a]f ]] (BoxModality),
      *   Get all states that have all a-transition into a state in set F
      */
-    pub fn get_box_modality(self: Self) -> HashSet<i64> {
-        panic!("not implemented yet")
+    pub fn get_box_modality(self: Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
+        let transition_dict = self.transitions.clone();
+        let mut output = HashSet::new();
+
+        for (state, state_map) in transition_dict {
+            // For state
+            if state_map.contains_key(&label) {
+                // check if states are subset of out_states
+                let target_states: &HashSet<i64> = state_map.get(&label)
+                    .expect("Won't happen, see contains_key() above");
+                if target_states.is_subset(&out_states) {
+                    output.insert(state);
+                }
+            } else {
+                // no "label" transitions, so add state
+                output.insert(state);
+            }
+        } 
+
+        return output;
     }
 
     /**
      * Get [[ <a>f ]] (DiamondModality),
      *   Get all states that have some a-transition into a state in set F
      */
-    pub fn get_diamond_modality(self: Self) -> HashSet<i64> {
+    pub fn get_diamond_modality(self: Self, out_states:HashSet<i64>) -> HashSet<i64> {
         panic!("not implemented yet")
     }
 
