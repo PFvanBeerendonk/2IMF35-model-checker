@@ -93,15 +93,14 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
         let label: &str = nums[1].split("\"").nth(1)
             .expect("No label found in {part}");
 
-        ltl = Ltl::add_transition(
-            ltl, 
+        ltl.add_transition(
             to_int64(nums[0]), 
             label, 
             to_int64(nums[2])
         );
     }
 
-    return ltl;
+    return ltl.finish_contruction();
 }
 
 fn to_int64(f: &str) -> i64 {
