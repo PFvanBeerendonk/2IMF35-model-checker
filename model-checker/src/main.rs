@@ -100,7 +100,7 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
         );
     }
 
-    return ltl.finish_contruction();
+    return ltl;
 }
 
 fn to_int64(f: &str) -> i64 {

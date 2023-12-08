@@ -1,4 +1,3 @@
-
 #[cfg(test)]
 mod test_get_all_states {
     use model_checker::types::ltl::Ltl;
@@ -17,6 +16,7 @@ mod test_get_all_states {
         assert_eq!(result, HashSet::from([0,1,2,3,4,5,6,7,8,9]));
     }
 }
+
 
 #[cfg(test)]
 mod test_insert_transition {
@@ -132,7 +132,71 @@ mod test_get_box_modality {
         assert_eq!(boxmod, HashSet::from([1, 2, 3, 4]))
     }
 
+    #[test]
+    fn test_box_modality_emptyset() {
+        let mut simple_ltl =  Ltl::new(
+            0,
+            3,
+            4,
+        );
+        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
+        simple_ltl.add_transition(2, "b", 3); // 2 -b-> 3
+        
+        let out_states = HashSet::from([]);
+
+        // [a]{} i.e. get the states where all a-transitions go into \tempyset
+        let boxmod = simple_ltl.get_box_modality(String::from("a") , out_states);
+
+        // 2 has only outgoing b
+        // 3 has no outgoing
+        assert_eq!(boxmod, HashSet::from([2, 3]))
+    }
 }
 
 
-// NOTE TO SELF: if add ALL states to hashmap (so noexistant states also work in boxMod)
+#[cfg(test)]
+mod test_get_diamond_modality {
+    use model_checker::types::ltl::Ltl;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_diamond_modality_regular() {
+        let mut simple_ltl =  Ltl::new(
+            0,
+            3,
+            3,
+        );
+        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
+        
+        let out_states = HashSet::from([1]);
+
+        // [a]{1} i.e. get the states where all a-transitions go into 1
+        let diamod = simple_ltl.get_diamond_modality(String::from("a") , out_states);
+
+        assert_eq!(diamod, HashSet::from([0]))
+    }
+
+    #[test]
+    fn test_diamond_modality_emptyset() {
+        let mut simple_ltl =  Ltl::new(
+            0,
+            3,
+            4,
+        );
+        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
+        simple_ltl.add_transition(2, "b", 3); // 1 -a-> 2
+        
+        let out_states = HashSet::from([]);
+
+        // [a]{} i.e. get the states where all a-transitions go into 1
+        let diamod = simple_ltl.get_diamond_modality(String::from("a") , out_states);
+
+        assert_eq!(diamod, HashSet::from([]))
+    }
+}

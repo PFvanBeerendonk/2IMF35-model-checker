@@ -80,14 +80,6 @@ impl Ltl{
         self.transitions = transition_dict;
         return self
     }
-    
-    /**
-     * Finish contruction, set data to immutable
-     */
-    pub fn finish_contruction(self) -> Self {
-        // TODO: lock the data
-        return self
-    }
 
     /**
      * Get S, all states
@@ -129,8 +121,23 @@ impl Ltl{
      * Get [[ <a>f ]] (DiamondModality),
      *   Get all states that have some a-transition into a state in set F
      */
-    pub fn get_diamond_modality(self: Self, out_states:HashSet<i64>) -> HashSet<i64> {
-        panic!("not implemented yet")
+    pub fn get_diamond_modality(self: Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
+        let transition_dict = self.transitions.clone();
+        let mut output = HashSet::new();
+
+        for (state, state_map) in transition_dict {
+            // For state
+            if state_map.contains_key(&label) {
+                let target_states: &HashSet<i64> = state_map.get(&label)
+                    .expect("Won't happen, see contains_key() above");
+                if target_states.intersection(&out_states).count() > 0 {
+                    // at least one of the target_states is in out_states, i.e. some a-transition in F
+                    output.insert(state);
+                }
+            }
+        } 
+
+        return output;
     }
 
 }
