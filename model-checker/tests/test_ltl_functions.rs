@@ -60,6 +60,24 @@ mod test_insert_transition {
         simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
         assert_eq!(simple_ltl.transitions, test_map );
     }
+
+    #[test]
+    #[should_panic(expected = "start_state '4' not correct")]
+    fn test_panic_start_state_too_big() {
+        let mut simple_ltl =  Ltl::new(
+            0,
+            2,
+            4,
+        );
+        simple_ltl.add_transition(4, "a", 1); // 4 -a-> 1, but 4 is too big
+    }
+    
+    #[test]
+    #[should_panic(expected = "end_state '3' not correct")]
+    fn test_panic_end_state_too_big() {
+        let mut simple_ltl: Ltl = Ltl::new(0, 2, 3);
+        simple_ltl.add_transition(1, "a", 3); // 1 -a-> 3, but 3 is too big
+    }
 }
 
 
