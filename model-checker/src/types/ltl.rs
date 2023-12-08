@@ -41,10 +41,10 @@ impl Ltl{
      * add an edge
      */
     pub fn add_transition(&mut self, start_state: i64, label: &str, end_state: i64) -> &mut Self {
-        if start_state < 0 || start_state > self.nr_of_states {
+        if start_state < 0 || start_state >= self.nr_of_states {
             panic!("start_state '{}' not correct", start_state)
         }
-        if end_state < 0 || end_state > self.nr_of_states {
+        if end_state < 0 || end_state >= self.nr_of_states {
             panic!("end_state '{}' not correct", end_state)
         }
 
