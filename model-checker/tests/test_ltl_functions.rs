@@ -29,19 +29,28 @@ mod test_insert_transition {
         let mut simple_ltl =  Ltl::new(
             0,
             2,
-            10,
+            4,
         );
-        // No transitions yet
-        let empty_map: HashMap<i64, HashMap< String, HashSet<i64>>> = HashMap::new();
+        // No transitions yet, but should have made an empty transistion map for each state
+        let empty_map: HashMap<i64, HashMap< String, HashSet<i64>>> =  HashMap::from([
+            (0, HashMap::new()),
+            (1, HashMap::new()),
+            (2, HashMap::new()),
+            (3, HashMap::new()),
+        ]);
 
         assert_eq!(simple_ltl.transitions, empty_map);
         
         // create example transition data 
         // {0: {a: [1, 0]}}
-        let mut test_map : HashMap<i64, HashMap< String, HashSet<i64>>> = HashMap::new();
-        let mut sub_map: HashMap< String, HashSet<i64>> = HashMap::new();
-        sub_map.insert(String::from("a"), HashSet::from([1,0])); //{a: [1, 0]}
-        test_map.insert(0, sub_map);
+        let test_map: HashMap<i64, HashMap<String, HashSet<i64>>> = HashMap::from([
+            (0, HashMap::from(
+                [(String::from("a"), HashSet::from([1,0]))]
+            )),
+            (1, HashMap::new()),
+            (2, HashMap::new()),
+            (3, HashMap::new()),
+        ]);
 
         simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
         simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
@@ -74,12 +83,61 @@ mod test_get_box_modality {
 
         // [a]1 i.e. get the states where all a-transitions go into 1 or 2
         let boxmod = simple_ltl.get_box_modality(String::from("a") , out_states);
-        
-        let mut expected_boxmod = HashSet::new();
-        expected_boxmod.insert(2);
 
-        // TODO: testing
-        assert_eq!(boxmod, expected_boxmod)
+        assert_eq!(boxmod, HashSet::from([2]))
+    }
+
+    #[test]
+    fn test_box_mod_state_with_no_a() {
+        // Box modality should also work for states that have NO a-transitions, or NO transitions at all
+
+        let mut simple_ltl =  Ltl::new(
+            0,
+            3,
+            4,
+        );
+        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 1); // 1 -a-> 1
+        simple_ltl.add_transition(2, "a", 1); // 2 -a-> 1
+        simple_ltl.add_transition(3, "b", 4); // 3 -b-> 4
+        
+        let out_states = HashSet::from([1, 2]);
+
+        // [a]out_states i.e. get the states where all a-transitions go into 1 or 2
+        let boxmod = simple_ltl.get_box_modality(String::from("a") , out_states);
+    
+        // State 1 a self loop, so should be included
+        // State 2 has all outgoing a-transitions going into [1,2]
+        // State 3 has no (outgoing) a-transitions, 
+        // 4 has no (outgoing) transitions at all
+        assert_eq!(boxmod, HashSet::from([1, 2, 3, 4]))
+    }
+
+    #[test]
+    fn test_box_mod_state_with_no_a_2() {
+        // Box modality should also work for states that have NO a-transitions, or NO transitions at all
+
+        let mut simple_ltl =  Ltl::new(
+            0,
+            3,
+            4,
+        );
+        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(2, "a", 1); // 2 -a-> 1
+        simple_ltl.add_transition(3, "b", 4); // 3 -b-> 4
+        
+        let out_states = HashSet::from([1, 2]);
+
+        // [a]out_states i.e. get the states where all a-transitions go into 1 or 2
+        let boxmod = simple_ltl.get_box_modality(String::from("a") , out_states);
+    
+        // State 1 has no (outgoing) a-transitions, 
+        // State 2 has all outgoing a-transitions going into [1,2]
+        // State 3 has no (outgoing) a-transitions, 
+        // 4 has no (outgoing) transitions at all
+        assert_eq!(boxmod, HashSet::from([1, 2, 3, 4]))
     }
 }
 
