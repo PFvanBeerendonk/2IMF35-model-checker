@@ -2,9 +2,9 @@ use crate::types::ltl::Ltl;
 use crate::types::formula::Formula;
 use crate::types::formula::Operator;
 use crate::types::formula::Node;
+use crate::types::state_set::StateSet;
 
 use std::collections::HashSet;
-
 
 
 // Given a formula `f`, evaluate it over `ltl`
@@ -14,7 +14,7 @@ pub fn execute(f: Formula, instance:Ltl) {
     
 }
 
-fn eval(node: Node) -> HashSet<String> {
+fn eval(node: Node, instance:&Ltl) -> HashSet<i64> {
     match node {
         Node::Variable(string) => {
             // X_i, TODO not sure about array yet.
@@ -23,25 +23,26 @@ fn eval(node: Node) -> HashSet<String> {
         Node::BinaryExpr { op, lhs, rhs } => {
             if op == Operator::Conjunction {
                 // Not sure if this can be done cleaner tbh, maybe hashset intersection isn't so nice after all...
-                let eval_lhs = eval(*lhs);
-                let eval_rhs = eval(*rhs);
-                return eval_lhs.intersection(&eval_rhs).map(|x| x.to_string()).collect::<HashSet<String>>();
+                let eval_lhs = eval(*lhs, instance);
+                let eval_rhs = eval(*rhs, instance);
+                return eval_lhs.intersection(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else if op == Operator::Disjunction {
-                let eval_lhs = eval(*lhs);
-                let eval_rhs = eval(*rhs);
-                return eval_lhs.union(&eval_rhs).map(|x| x.to_string()).collect::<HashSet<String>>();
+                let eval_lhs = eval(*lhs, instance);
+                let eval_rhs = eval(*rhs, instance);
+                return eval_lhs.union(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else {
                 panic!("Not implemented yet");
             }
             return HashSet::new();
         }
-        Node::UnaryExpr { op, child } => {
-            if op == Operator::Negate {
-                let eval_child = eval(*child);
-                let all_states: HashSet<String> = HashSet::new(); // TODO
-                return all_states.difference(&eval_child).map(|x| x.to_string()).collect::<HashSet<String>>();
-            } else if op == Operator::SimpleTrue {
-                let all_states: HashSet<String> = HashSet::new(); // TODO
+        Node::UnaryExpr { op } => {
+            // if op == Operator::Negate {
+            //     let eval_child = eval(*child);
+            //     let all_states: HashSet<String> = HashSet::new(); // TODO
+            //     return all_states.difference(&eval_child).map(|x| x.to_string()).collect::<HashSet<String>>();
+            // } else
+            if op == Operator::SimpleTrue {
+                let all_states = instance.get_all_states(); // TODO
                 return all_states;
             } else if op == Operator::SimpleFalse {
                 // Empty set.
@@ -49,6 +50,10 @@ fn eval(node: Node) -> HashSet<String> {
             } else {
                 panic!("Not implemented yet");
             }
+            return HashSet::new();
+        }
+        Node::Action(string) => {
+            // TODO
             return HashSet::new();
         }
     }
@@ -68,4 +73,4 @@ pub fn execute_improved(f: Formula, instance:Ltl) {
 
 // fn eval(f:Formula, instance:Ltl) {
 
-// }
+// }    

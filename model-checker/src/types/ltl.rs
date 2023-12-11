@@ -84,7 +84,7 @@ impl Ltl{
     /**
      * Get S, all states
      */
-    pub fn get_all_states(self: Self) -> HashSet<i64> {
+    pub fn get_all_states(self: &Self) -> HashSet<i64> {
         // Create vector with numbers 0 through nr_of_states
         let states: Vec<i64> = (0..self.nr_of_states).collect();
         // Turn into hashset
@@ -95,7 +95,7 @@ impl Ltl{
      * Get [[ [a]f ]] (BoxModality),
      *   Get all states that have all a-transition into a state in set F
      */
-    pub fn get_box_modality(self: Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
+    pub fn get_box_modality(self: &Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
         let transition_dict = self.transitions.clone();
         let mut output = HashSet::new();
 
@@ -121,7 +121,7 @@ impl Ltl{
      * Get [[ <a>f ]] (DiamondModality),
      *   Get all states that have some a-transition into a state in set F
      */
-    pub fn get_diamond_modality(self: Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
+    pub fn get_diamond_modality(self: &Self, label:String, out_states:HashSet<i64>) -> HashSet<i64> {
         let transition_dict = self.transitions.clone();
         let mut output = HashSet::new();
 
