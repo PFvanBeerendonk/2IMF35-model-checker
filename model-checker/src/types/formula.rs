@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
     SimpleFalse, // f = false
     SimpleTrue,  // f = true
@@ -14,7 +14,7 @@ pub enum Operator {
     GreatestFixpoint, // nu X
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Node {
     Variable(String), // X / Y / etc.
     Action(String), // Something from the set Act (i, plato, etc.)
