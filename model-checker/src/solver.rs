@@ -29,7 +29,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
         }
         Node::BinaryExpr { op, lhs, rhs } => {
             print!("Printing operator");
-            print!("Operator: {:?}", op);
+            print!("Operator: {:?}\n", op);
             if op == Operator::Conjunction {
                 // Not sure if this can be done cleaner tbh, maybe hashset intersection isn't so nice after all...
                 let eval_lhs = eval(*lhs, instance, variable_map);
@@ -122,7 +122,8 @@ fn retrieve_element(element: Option<&HashSet<i64>>) -> &HashSet<i64> {
 }
 
 fn calculate_fixpoint(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>) -> HashSet<i64> {
-    let mut x_prime: HashSet<i64> = HashSet::new(); 
+    // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
+    let mut x_prime: HashSet<i64> = HashSet::from([1]); 
     let mut a = retrieve_element(variable_map.get(&string.clone())).clone();
     while x_prime != a {
         x_prime = a.clone();
