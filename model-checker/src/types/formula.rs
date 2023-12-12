@@ -41,31 +41,13 @@ pub fn parse_logic(expression: &str) -> Node {
                 lhs: Box::new(parse_logic(first_part)),
                 rhs: Box::new(parse_logic(second_part))
             };
-        } else if expression.contains("[") && expression.contains("]") {
-            (action, variable) = extract_bracketed_strings(expression, "box");
-            return Node::BinaryExpr {
-                op: Operator::BoxModality,
-                lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(Node::Variable((*variable).to_string())),
-            };
-        } else if expression.contains("<") && expression.contains(">") {
-            (action, variable) = extract_bracketed_strings(expression, "diamond");
-            return Node::BinaryExpr {
-                op: Operator::DiamondModality,
-                lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(Node::Variable((*variable).to_string())),
-            };
-        } else if expression == "true" {
-            return Node::UnaryExpr { op: Operator::SimpleTrue }
-        } else if expression == "false" {
-            return Node::UnaryExpr { op: Operator::SimpleFalse }
         } else if expression.starts_with("mu") {
             let rhs_idx = expression.find('.')
                 .expect(". must be found");
 
             return Node::BinaryExpr {
                 op: Operator::LeastFixpoint,
-                lhs: Box::new(Node::Variable(expression[2..3].to_string())),
+                lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
                 rhs: Box::new(parse_logic(&expression[rhs_idx + 1..])),
             };
         } else if expression.starts_with("nu") {
@@ -73,9 +55,27 @@ pub fn parse_logic(expression: &str) -> Node {
                 .expect(". must be found");
             return Node::BinaryExpr {
                 op: Operator::GreatestFixpoint,
-                lhs: Box::new(Node::Variable(expression[2..3].to_string())),
+                lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
                 rhs: Box::new(parse_logic(&expression[rhs_idx+1..])),
             };
+        } else if expression.starts_with("[") && expression.contains("]") {
+            (action, variable) = extract_bracketed_strings(expression, "box");
+            return Node::BinaryExpr {
+                op: Operator::BoxModality,
+                lhs: Box::new(Node::Action((*action).to_string())),
+                rhs: Box::new(parse_logic(variable)),
+            };
+        } else if expression.starts_with("<") && expression.contains(">") {
+            (action, variable) = extract_bracketed_strings(expression, "diamond");
+            return Node::BinaryExpr {
+                op: Operator::DiamondModality,
+                lhs: Box::new(Node::Action((*action).to_string())),
+                rhs: Box::new(parse_logic(variable)),
+            };
+        } else if expression == "true" {
+            return Node::UnaryExpr { op: Operator::SimpleTrue }
+        } else if expression == "false" {
+            return Node::UnaryExpr { op: Operator::SimpleFalse }
         }
         if variable == "true" {
             return Node::UnaryExpr{ op: Operator::SimpleTrue };
@@ -84,6 +84,21 @@ pub fn parse_logic(expression: &str) -> Node {
         }
         return Node::Variable(expression.to_string());
     } else if expression.starts_with("(")  {
+        let and_index = check_junction_after_paren(expression, "&&");
+        let or_index = check_junction_after_paren(expression, "||");
+        if and_index != usize::MAX {
+            return Node::BinaryExpr {
+                op: Operator::Conjunction,
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()))),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string())))
+            }
+        } else if or_index != usize::MAX {
+            return Node::BinaryExpr {
+                op: Operator::Disjunction,
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()))),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string())))
+            }
+        }
         let (first_part, operator, second_part) = get_junctions(expression);
         return Node::BinaryExpr {
             op: operator,
@@ -108,7 +123,7 @@ pub fn parse_logic(expression: &str) -> Node {
                 lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()))),
                 rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string())))
             }
-        } 
+        }
         if let Some(extracted) = extract_text_before_brackets(expression) {
             // do mu, nu, <>, [], &&, and ||
             if extracted.ends_with("&&") {
@@ -133,16 +148,41 @@ pub fn parse_logic(expression: &str) -> Node {
                 };
                 // lhs = Node::Variable(extracted[0..3].to_string());
             } else if extracted.starts_with("mu") {
-                operator = Operator::LeastFixpoint;
-                lhs = Node::Variable(extracted[2..3].to_string());
+                let rhs_idx = expression.find('.')
+                    .expect(". must be found");
+    
+                return Node::BinaryExpr {
+                    op: Operator::LeastFixpoint,
+                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
+                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
+                };
             } else if extracted.starts_with("nu") {
-                operator = Operator::GreatestFixpoint;
-                lhs = Node::Variable(extracted[2..3].to_string());
+                let rhs_idx = expression.find('.')
+                    .expect(". must be found");
+    
+                return Node::BinaryExpr {
+                    op: Operator::GreatestFixpoint,
+                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
+                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
+                };
             } else {
                 // parse_logic(extracted);
             }
         };
         if let Some(extracted) = extract_text_between_brackets(expression) {
+            println!("WTF {:?}, {:?}", extract_text_before_brackets(expression), extract_text_between_brackets(expression));
+            // let rhs: Node;
+            // if extracted.starts_with("&&") {
+            //     // return Node::BinaryExpr {
+            //     //     op: Operator::Conjunction,
+            //     //     lhs: Box::new(lhs),
+            //     //     rhs: (),
+            //     // }
+            //     rhs = Node::Variable(extracted[..extracted.len()-2].to_string());
+            // } else if extracted.starts_with("||") {
+            //     operator = Operator::Disjunction;
+            //     lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
+            // }
             return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted)) };
         };
     }
@@ -201,17 +241,17 @@ fn get_strings_between_brackets(s: &str) -> Option<&str> {
 }
 
 fn get_junctions<'a>(s: &'a str) -> (&'a str, Operator, &'a str) {
-    let mut operator = Operator::SimpleFalse;
+    let operator: Operator;
     if let Some(first) = get_strings_between_brackets(s) {
         // if the first part between bracket has the length of the full string
         if s.len() == first.len() + 2 {
-            // get the junction within that 
+            // get the junction within that pair of brackets
             if s.contains("&&") {
                 let expressions: Vec<&str> = s.split("&&").collect();
                 return (&expressions[0][1..], Operator::Conjunction, &expressions[1][..expressions[1].len()-1]);
             } else if s.contains("||") {
                 let expressions: Vec<&str> = s.split("||").collect();
-                return (&expressions[0][1..], Operator::Conjunction, &expressions[1][..expressions[1].len()-1]);
+                return (&expressions[0][1..], Operator::Disjunction, &expressions[1][..expressions[1].len()-1]);
             } else {
                 panic!("There was no operator in the string {}", &s);
             }
@@ -232,7 +272,7 @@ fn get_junctions<'a>(s: &'a str) -> (&'a str, Operator, &'a str) {
         let expressions: Vec<&str> = s.split("||").collect();
         return (expressions[0], Operator::Disjunction, expressions[1]);
     }
-    panic!("No conjunction or disjunction found");
+    panic!("No conjunction or disjunction found {}", s);
 }
 
 fn check_junction_before_paren(input_string: &str, str_to_check: &str) -> usize {
@@ -240,6 +280,18 @@ fn check_junction_before_paren(input_string: &str, str_to_check: &str) -> usize 
         let substring_before_paren = &input_string[..pos];
         if let Some(index) = substring_before_paren.find(str_to_check) {
             return index as usize;
+        }
+    }
+    usize::MAX
+}
+
+fn check_junction_after_paren(input_string: &str, str_to_check: &str) -> usize {
+    if let Some(pos) = input_string.rfind(')') {
+        let substring_after_paren = &input_string[pos..];
+        if input_string.len() > pos+1 {
+            if let Some(index) = substring_after_paren.find(str_to_check) {
+                return index+pos as usize;
+            }
         }
     }
     usize::MAX
