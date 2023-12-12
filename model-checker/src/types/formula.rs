@@ -193,12 +193,24 @@ fn get_strings_between_brackets(s: &str) -> Option<&str> {
 fn get_junctions<'a>(s: &'a str) -> (&'a str, Operator, &'a str) {
     let mut operator = Operator::SimpleFalse;
     if let Some(first) = get_strings_between_brackets(s) {
-        if s[first.len()+2..].starts_with("&&") {
+        // if the first part between bracket has the length of the full string
+        if s.len() == first.len() + 2 {
+            // get the junction within that 
+            if s.contains("&&") {
+                let expressions: Vec<&str> = s.split("&&").collect();
+                return (&expressions[0][1..], Operator::Conjunction, &expressions[1][..expressions[1].len()-1]);
+            } else if s.contains("||") {
+                let expressions: Vec<&str> = s.split("||").collect();
+                return (&expressions[0][1..], Operator::Conjunction, &expressions[1][..expressions[1].len()-1]);
+            } else {
+                panic!("There was no operator in the string {}", &s);
+            }
+        } else if s[first.len()+2..].starts_with("&&") {
             operator = Operator::Conjunction;
         } else if s[first.len()+2..].starts_with("||") {
             operator = Operator::Disjunction;
-        } else{
-            println!("There was no operator found at the start of the string {}", &s[first.len()..]);
+        } else {
+            panic!("There was no operator found at the start of the string {}, {}, {}", &s[first.len()..], s.len(), first.len());
         }
         if let Some(second) = get_strings_between_brackets(&s[first.len()..]) {
             return (first, operator, second);
@@ -328,7 +340,6 @@ impl Formula {
             .collect::<Vec<&str>>()
             .join("\n");
         formula.retain(|c| (!c.is_whitespace() && c != '\n'));
-
 
         println!("{}", formula);
 
