@@ -52,9 +52,13 @@ fn main() {
 }
 
 fn print_set(set: HashSet<i64>) {
+    print!("Printing set: ");
     print!("{{");
-    for i in set {
-        print!("{},", i);
+    for i in 0..set.len()  {
+        print!("{}", i);
+        if (i != set.len()-1) {
+            print!(",");
+        }
     }
     println!("}}");
 }
