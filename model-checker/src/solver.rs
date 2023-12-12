@@ -28,6 +28,8 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
             }
         }
         Node::BinaryExpr { op, lhs, rhs } => {
+            print!("Printing operator");
+            print!("Operator: {:?}", op);
             if op == Operator::Conjunction {
                 // Not sure if this can be done cleaner tbh, maybe hashset intersection isn't so nice after all...
                 let eval_lhs = eval(*lhs, instance, variable_map);
@@ -99,9 +101,8 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                 // Empty set.
                 return HashSet::new();
             } else {
-                panic!("Not implemented yet");
+                panic!("This should not reach any statement except true or false");
             }
-            return HashSet::new();
         }
         Node::Action(_) => {
             unreachable!("Should not happen");

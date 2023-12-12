@@ -52,11 +52,11 @@ fn main() {
 }
 
 fn print_set(set: HashSet<i64>) {
-    print!("Printing set: ");
+    print!("Resulting set: ");
     print!("{{");
-    for i in 0..set.len()  {
-        print!("{}", i);
-        if (i != set.len()-1) {
+    for (i, el) in set.iter().enumerate()  {
+        print!("{}", el);
+        if i != set.len()-1 {
             print!(",");
         }
     }
@@ -100,7 +100,7 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
     for part in lines.skip(1) {
         let (start, last) = part.split_at(1);
         if "(" != start {
-            panic!("Line '{}' did not start with '('", part);
+            !panic!("Line '{}' did not start with '('", part)
         }
         let seconds: Vec<&str> = last.split(")").collect();
         let nums: Vec<&str> = seconds[0].split(",").collect();
