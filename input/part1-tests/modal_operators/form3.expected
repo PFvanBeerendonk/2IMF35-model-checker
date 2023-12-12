@@ -1,0 +1,3 @@
+BinaryExpr(BoxModality)
+    Action("tau")
+    UnaryExpr(SimpleFalse)

@@ -1,0 +1,5 @@
+BinaryExpr(DiamondModality)
+    Action("tau")
+    BinaryExpr(BoxModality)
+        Action("tau")
+        UnaryExpr(SimpleTrue)
