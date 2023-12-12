@@ -28,13 +28,12 @@ pub struct Formula {
     pub actions: HashSet<String>, // all actions in the AST hashset
 }
 
-fn parse_logic(expression: &str) -> Node {
+pub fn parse_logic(expression: &str) -> Node {
     let expression = expression.trim();
     let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
-        let mut action = "";
+        let action: &str;
         let mut variable = "";
-        let mut operator = Operator::SimpleFalse;
         if expression.contains("&&") || expression.contains("||") {
             let (first_part, operator, second_part) = get_junctions(expression);
             return Node::BinaryExpr {
@@ -43,36 +42,47 @@ fn parse_logic(expression: &str) -> Node {
                 rhs: Box::new(parse_logic(second_part))
             };
         } else if expression.contains("[") && expression.contains("]") {
-            operator = Operator::BoxModality;
             (action, variable) = extract_bracketed_strings(expression, "box");
+            return Node::BinaryExpr {
+                op: Operator::BoxModality,
+                lhs: Box::new(Node::Action((*action).to_string())),
+                rhs: Box::new(Node::Variable((*variable).to_string())),
+            };
         } else if expression.contains("<") && expression.contains(">") {
-            operator = Operator::DiamondModality;
             (action, variable) = extract_bracketed_strings(expression, "diamond");
+            return Node::BinaryExpr {
+                op: Operator::DiamondModality,
+                lhs: Box::new(Node::Action((*action).to_string())),
+                rhs: Box::new(Node::Variable((*variable).to_string())),
+            };
         } else if expression == "true" {
             return Node::UnaryExpr { op: Operator::SimpleTrue }
         } else if expression == "false" {
             return Node::UnaryExpr { op: Operator::SimpleFalse }
-        } else {
-            println!("THIS SHOULDN'T OCCUR {}", expression);
+        } else if expression.starts_with("mu") {
+            let rhs_idx = expression.find('.')
+                .expect(". must be found");
+
+            return Node::BinaryExpr {
+                op: Operator::LeastFixpoint,
+                lhs: Box::new(Node::Variable(expression[2..3].to_string())),
+                rhs: Box::new(parse_logic(&expression[rhs_idx + 1..])),
+            };
+        } else if expression.starts_with("nu") {
+            let rhs_idx = expression.find('.')
+                .expect(". must be found");
+            return Node::BinaryExpr {
+                op: Operator::GreatestFixpoint,
+                lhs: Box::new(Node::Variable(expression[2..3].to_string())),
+                rhs: Box::new(parse_logic(&expression[rhs_idx+1..])),
+            };
         }
         if variable == "true" {
-            return Node::BinaryExpr {
-                op: operator,
-                lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(Node::UnaryExpr{ op: Operator::SimpleTrue }),
-            };
+            return Node::UnaryExpr{ op: Operator::SimpleTrue };
         } else if variable == "false" {
-            return Node::BinaryExpr {
-                op: operator,
-                lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(Node::UnaryExpr{ op: Operator::SimpleFalse }),
-            };
+            return Node::UnaryExpr{ op: Operator::SimpleFalse };
         }
-        return Node::BinaryExpr {
-            op: operator,
-            lhs: Box::new(Node::Action((*action).to_string())),
-            rhs: Box::new(Node::Variable((*variable).to_string())),
-        };
+        return Node::Variable(expression.to_string());
     } else if expression.starts_with("(")  {
         let (first_part, operator, second_part) = get_junctions(expression);
         return Node::BinaryExpr {
@@ -314,19 +324,26 @@ fn extract_actions(root_node: &Node) -> HashSet<String> {
 
 
 
-fn print_ast(node: &Node, indent: usize) {
+pub fn print_ast(node: &Node, indent: usize) -> String {
+    let mut output = String::new();
+
     match node {
-        Node::Variable(var) => println!("{:indent$}Variable({})", "", var, indent = indent),
-        Node::Action(act) => println!("{:indent$}Action({:?})", "", act, indent = indent),
+        Node::Variable(var) => {
+            output.push_str(&format!("{:indent$}Variable({})\n", "", var, indent = indent));
+        }
+        Node::Action(act) => {
+            output.push_str(&format!("{:indent$}Action({:?})\n", "", act, indent = indent));
+        }
         Node::UnaryExpr { op } => {
-            println!("{:indent$}UnaryExpr({:?})", "", op, indent = indent);
+            output.push_str(&format!("{:indent$}UnaryExpr({:?})\n", "", op, indent = indent));
         }
         Node::BinaryExpr { op, lhs, rhs } => {
-            println!("{:indent$}BinaryExpr({:?})", "", op, indent = indent);
-            print_ast(lhs, indent + 4);
-            print_ast(rhs, indent + 4);
+            output.push_str(&format!("{:indent$}BinaryExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&print_ast(lhs, indent + 4));
+            output.push_str(&print_ast(rhs, indent + 4));
         }
     }
+    output
 }
 
 impl Formula {
@@ -344,8 +361,7 @@ impl Formula {
         println!("{}", formula);
 
         let parsed_formula = parse_logic(&formula);
-        
-        // print_ast(&parsed_formula, 0);
+        println!("{}", print_ast(&parsed_formula, 0));
         
         return Self{
             variables: extract_variables(&parsed_formula),
