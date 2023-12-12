@@ -1,5 +1,6 @@
 use std::fs;
 use clap::Parser;
+use std::collections::HashSet;
 
 // local imports
 mod solver;
@@ -37,16 +38,25 @@ fn main() {
     let f: Formula = read_mcf_file(args.mcf_file);
     let ltl: Ltl = read_aut_file(args.aut_file);
 
-    
+    let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
         execute_improved(f, ltl);
 
     } else {
-        execute(f, ltl);
+        result_set = execute(f, ltl);
     }
+    print_set(result_set);
 
     println!("\nTerminated Succesfully");
 
+}
+
+fn print_set(set: HashSet<i64>) {
+    print!("{{");
+    for i in set {
+        print!("{},", i);
+    }
+    println!("}}");
 }
 
 

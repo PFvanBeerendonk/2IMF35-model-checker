@@ -75,7 +75,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                 match node {
                     Node::Action(string) => {
                         let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map);
-                        return instance.get_diamond_modality(string, states_rhs)
+                        return instance.get_box_modality(string, states_rhs)
                     }
                     Node::Variable(_) => unreachable!(),
                     Node::UnaryExpr { op: _ } => unreachable!(),
