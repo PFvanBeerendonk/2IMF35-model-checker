@@ -183,11 +183,9 @@ mod test_get_box_modality {
         
         let out_states = HashSet::from([]);
 
-        // [a]{} i.e. get the states where all a-transitions go into \tempyset
+        // [tau]{} i.e. get the states where all a-transitions go into \tempyset
         let boxmod = simple_ltl.get_box_modality(String::from("tau") , out_states);
 
-        // 2 has only outgoing b
-        // 3 has no outgoing
         assert_eq!(boxmod, HashSet::from([3, 5, 7]))
     }
 }
