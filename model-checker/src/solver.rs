@@ -123,7 +123,7 @@ fn retrieve_element(element: Option<&HashSet<i64>>) -> &HashSet<i64> {
 fn calculate_fixpoint(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>) -> HashSet<i64> {
     let mut x_prime: HashSet<i64> = HashSet::new(); 
     let mut a = retrieve_element(variable_map.get(&string.clone())).clone();
-    while (x_prime != a){
+    while x_prime != a {
         x_prime = a.clone();
         let temp = eval(g.clone(), instance, variable_map);
         (*variable_map).insert(string.clone(), temp);
