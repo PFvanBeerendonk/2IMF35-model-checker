@@ -35,7 +35,7 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
     let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
         let action: &str;
-        let mut variable = "";
+        let variable: &str;
         if expression.contains("&&") || expression.contains("||") {
             let (first_part, operator, second_part) = get_junctions(expression);
             return Node::BinaryExpr {
@@ -81,11 +81,6 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
         } else if expression == "false" {
             return Node::UnaryExpr { op: Operator::SimpleFalse }
         }
-        if variable == "true" {
-            return Node::UnaryExpr{ op: Operator::SimpleTrue };
-        } else if variable == "false" {
-            return Node::UnaryExpr{ op: Operator::SimpleFalse };
-        }
         return Node::Variable(expression.to_string());
     } else if expression.starts_with("(")  {
         let and_index = check_junction_after_paren(expression, "&&");
@@ -110,7 +105,6 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             rhs: Box::new(parse_logic(second_part, Operator::None))
         };
     } else {
-        let mut lhs = Node::Variable("TODO".to_string());
         let and_index = check_junction_before_paren(expression, "&&");
         let or_index = check_junction_before_paren(expression, "||");
         if and_index != usize::MAX {
@@ -129,14 +123,8 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             }
         }
         if let Some(extracted) = extract_text_before_brackets(expression) {
-            // do mu, nu, <>, [], &&, and ||
-            if extracted.ends_with("&&") {
-                operator = Operator::Conjunction;
-                lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            } else if extracted.ends_with("||") {
-                operator = Operator::Disjunction;
-                lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            } else if extracted.starts_with("[") {
+            // do mu, nu, <>, and []
+            if extracted.starts_with("[") {
                 let (action, variable) = extract_bracketed_strings(expression, "box");
                 return Node::BinaryExpr {
                     op: Operator::BoxModality,
@@ -174,22 +162,6 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             } else {
                 // parse_logic(extracted);
             }
-        };
-        if let Some(extracted) = extract_text_between_brackets(expression) {
-            println!("WTF {:?}, {:?}", extract_text_before_brackets(expression), extract_text_between_brackets(expression));
-            // let rhs: Node;
-            // if extracted.starts_with("&&") {
-            //     // return Node::BinaryExpr {
-            //     //     op: Operator::Conjunction,
-            //     //     lhs: Box::new(lhs),
-            //     //     rhs: (),
-            //     // }
-            //     rhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            // } else if extracted.starts_with("||") {
-            //     operator = Operator::Disjunction;
-            //     lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            // }
-            return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted, Operator::None)) };
         };
     }
     println!("PANIC {}", expression);
@@ -394,16 +366,16 @@ pub fn print_ast(node: &Node, indent: usize) -> String {
 
     match node {
         Node::Variable(var) => {
-            output.push_str(&format!("{:indent$}Variable({})\n", "", var, indent = indent));
+            output.push_str(&format!("{:indent$}Variable({})\r\n", "", var, indent = indent));
         }
         Node::Action(act) => {
-            output.push_str(&format!("{:indent$}Action({:?})\n", "", act, indent = indent));
+            output.push_str(&format!("{:indent$}Action({:?})\r\n", "", act, indent = indent));
         }
         Node::UnaryExpr { op } => {
-            output.push_str(&format!("{:indent$}UnaryExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}UnaryExpr({:?})\r\n", "", op, indent = indent));
         }
         Node::BinaryExpr { op, lhs, rhs } => {
-            output.push_str(&format!("{:indent$}BinaryExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}BinaryExpr({:?})\r\n", "", op, indent = indent));
             output.push_str(&print_ast(lhs, indent + 4));
             output.push_str(&print_ast(rhs, indent + 4));
         }

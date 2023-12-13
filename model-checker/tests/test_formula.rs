@@ -18,7 +18,7 @@ mod formula_tests {
         let output = print_ast(&parsed_formula, 0);
 
         // Compare the actual output with the expected output
-        println!("File{} converted from {} to:\n {}", file_path, input, output);
+        println!("File {} converted from '{}' to:\n {}", file_path, input, output);
         assert_eq!(output, expected_output);
 
         Ok(())
