@@ -47,7 +47,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                     Node::Variable(_) => unreachable!(),
                     Node::UnaryExpr { op: _ } => unreachable!(),
                     Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
-                    Node::FixPointExpr { op: _, variable: _, rhs, surrounding_binder: _ } => unreachable!(),
+                    Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else if op == Operator::BoxModality {
                 let node = *lhs;
@@ -59,12 +59,11 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                     Node::Variable(_) => unreachable!(),
                     Node::UnaryExpr { op: _ } => unreachable!(),
                     Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
-                    Node::FixPointExpr { op: _, variable: _, rhs, surrounding_binder: _ } => unreachable!(),
+                    Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else {
-                panic!("Not implemented yet");
+                panic!("We shouldn't reach this!");
             }
-            return HashSet::new();
         }
         Node::UnaryExpr { op } => {
             // if op == Operator::Negate {
@@ -82,7 +81,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                 panic!("This should not reach any statement except true or false");
             }
         }
-        Node::FixPointExpr { op, variable, rhs, surrounding_binder } => {
+        Node::FixPointExpr { op, variable, rhs, surrounding_binder: _ } => {
             if op == Operator::GreatestFixpoint {
                 (*variable_map).insert(variable.clone(), instance.get_all_states());
                 return calculate_fixpoint(variable, *rhs, instance, variable_map)
@@ -186,9 +185,8 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                     Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else {
-                panic!("Not implemented yet");
+                panic!("We shouldn't reach this statement!");
             }
-            return HashSet::new();
         }
         Node::UnaryExpr { op } => {
             // if op == Operator::Negate {
@@ -209,7 +207,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
         Node::FixPointExpr { op, variable, rhs, surrounding_binder } => {
             if op == Operator::GreatestFixpoint {
                 if surrounding_binder == Operator::LeastFixpoint {
-                    for value in variables_open_map.get(&variable) {
+                    if let Some(value) = variables_open_map.get(&variable) {
                         for var in value {
                             (*variable_map).insert(var.clone(), instance.get_all_states());
                         }
@@ -218,7 +216,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                 return calculate_fixpoint_improved(variable, *rhs, instance, variable_map, variables_open_map)
             } else if op == Operator::LeastFixpoint {
                 if surrounding_binder == Operator::GreatestFixpoint {
-                    for value in variables_open_map.get(&variable) {
+                    if let Some(value) = variables_open_map.get(&variable) {
                         for var in value {
                             (*variable_map).insert(var.clone(), HashSet::new());
                         }
