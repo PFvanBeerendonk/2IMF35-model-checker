@@ -291,7 +291,8 @@ fn find_variables(node: &Node, variables_mu: &mut HashSet<String>, variables_nu:
     }
 }
 
-fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, variables_open_map: &HashMap<String, HashSet<String>>) -> HashSet<i64> {
+fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, 
+    variables_open_map: &HashMap<String, HashSet<String>>) -> HashSet<i64> {
     // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
     let mut x_prime: HashSet<i64> = HashSet::from([1]); 
     let mut a = retrieve_element(variable_map.get(&string.clone())).clone();

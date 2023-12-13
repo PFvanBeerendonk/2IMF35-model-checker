@@ -26,8 +26,6 @@ pub enum Node {
 
 pub struct Formula {
     pub root_node: Node,
-    pub variables: HashSet<String>, // all vars hashset
-    pub actions: HashSet<String>, // all actions in the AST hashset
 }
 
 pub fn parse_logic(expression: &str, binder:Operator) -> Node {
@@ -314,53 +312,6 @@ fn extract_bracketed_strings<'a>(
     ("", "")
 }
 
-fn extract_variables_from_node(node: &Node, variables: &mut HashSet<String>) {
-    match node {
-        Node::Variable(var) => {
-            variables.insert(var.clone());
-        }
-        Node::BinaryExpr { lhs, rhs, .. } => {
-            extract_variables_from_node(lhs, variables);
-            extract_variables_from_node(rhs, variables);
-        }
-        Node::FixPointExpr { op: _, variable, rhs , surrounding_binder: _} => {
-            variables.insert(variable.clone());
-            extract_variables_from_node(rhs, variables);
-        }
-        Node::UnaryExpr { .. } | Node::Action(_) => {}
-    }
-}
-
-fn extract_variables(root_node: &Node) -> HashSet<String> {
-    let mut variables = HashSet::new();
-    extract_variables_from_node(root_node, &mut variables);
-    variables
-}
-
-fn extract_actions_from_node(node: &Node, actions: &mut HashSet<String>) {
-    match node {
-        Node::Action(action) => {
-            actions.insert(action.clone());
-        }
-        Node::BinaryExpr { lhs, rhs, .. } => {
-            extract_actions_from_node(lhs, actions);
-            extract_actions_from_node(rhs, actions);
-        }
-        Node::FixPointExpr { op: _, variable: _, rhs, surrounding_binder: _ } => {
-            extract_actions_from_node(rhs, actions);
-        }
-        Node::UnaryExpr { .. } | Node::Variable(_) => {}
-    }
-}
-
-fn extract_actions(root_node: &Node) -> HashSet<String> {
-    let mut actions = HashSet::new();
-    extract_actions_from_node(root_node, &mut actions);
-    actions
-}
-
-
-
 pub fn print_ast(node: &Node, indent: usize) -> String {
     let mut output = String::new();
 
@@ -407,8 +358,6 @@ impl Formula {
     
 
         return Self{
-            variables: extract_variables(&parsed_formula),
-            actions: extract_actions(&parsed_formula),
             root_node: parsed_formula,
         }
     }
