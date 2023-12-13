@@ -40,7 +40,7 @@ fn main() {
 
     let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
-        execute_improved(f, ltl);
+        result_set = execute_improved(f, ltl);
 
     } else {
         result_set = execute(f, ltl);

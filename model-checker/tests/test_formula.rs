@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod formula_tests {
     use std::fs;
-    use model_checker::types::formula::{print_ast, parse_logic};
+    use model_checker::types::formula::{print_ast, parse_logic, Operator};
     use std::path::PathBuf;
     use walkdir::WalkDir;
 
@@ -14,7 +14,7 @@ mod formula_tests {
             .collect::<Vec<&str>>()
             .join("\n");
         input.retain(|c| (!c.is_whitespace() && c != '\n'));
-        let parsed_formula = parse_logic(&input);
+        let parsed_formula = parse_logic(&input, Operator::None);
         let output = print_ast(&parsed_formula, 0);
 
         // Compare the actual output with the expected output
@@ -43,7 +43,8 @@ mod formula_tests {
                         // Handle case where the expected file doesn't exist
                         println!("Expected file not found for {:?}", file_path);
                         let expression = fs::read_to_string(file_path.to_str().unwrap()).expect("Error reading contents of file");
-                        print_ast(&parse_logic(&expression), 0);
+                        print!("EXpression: {:}", expression);
+                        print_ast(&parse_logic(&expression, Operator::None), 0);
                         // Perform necessary actions if the file doesn't exist (e.g., skip the test or fail the test)
                     }
                 }

@@ -1,0 +1,1 @@
+nu X1. nu X2. mu X3. mu X4.(X1 || X2 || (mu X5.X5 && true))

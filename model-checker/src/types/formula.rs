@@ -12,6 +12,7 @@ pub enum Operator {
     BoxModality, // f = <a>g
     LeastFixpoint, // mu X
     GreatestFixpoint, // nu X
+    None,  // To indicate that we have no fixed point that bounds the current fixed point.
 }
 
 #[derive(Debug, Clone)]
@@ -20,6 +21,7 @@ pub enum Node {
     Action(String), // Something from the set Act (i, plato, etc.)
     UnaryExpr { op: Operator }, // SimpleFalse, SimpleTrue, Negate
     BinaryExpr { op: Operator, lhs: Box<Node>, rhs: Box<Node> }, 
+    FixPointExpr { op: Operator, variable: String, rhs: Box<Node>, surrounding_binder:Operator},
 }
 
 pub struct Formula {
@@ -28,7 +30,7 @@ pub struct Formula {
     pub actions: HashSet<String>, // all actions in the AST hashset
 }
 
-pub fn parse_logic(expression: &str) -> Node {
+pub fn parse_logic(expression: &str, binder:Operator) -> Node {
     let expression = expression.trim();
     let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
@@ -38,39 +40,41 @@ pub fn parse_logic(expression: &str) -> Node {
             let (first_part, operator, second_part) = get_junctions(expression);
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(first_part)),
-                rhs: Box::new(parse_logic(second_part))
+                lhs: Box::new(parse_logic(first_part, Operator::None)),
+                rhs: Box::new(parse_logic(second_part, Operator::None))
             };
         } else if expression.starts_with("mu") {
             let rhs_idx = expression.find('.')
                 .expect(". must be found");
 
-            return Node::BinaryExpr {
+            return Node::FixPointExpr { 
                 op: Operator::LeastFixpoint,
-                lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
-                rhs: Box::new(parse_logic(&expression[rhs_idx + 1..])),
+                variable: expression[2..rhs_idx].to_string(),
+                rhs: Box::new(parse_logic(&expression[rhs_idx + 1..], Operator::LeastFixpoint)),
+                surrounding_binder: binder
             };
         } else if expression.starts_with("nu") {
             let rhs_idx = expression.find('.')
                 .expect(". must be found");
-            return Node::BinaryExpr {
+            return Node::FixPointExpr {
                 op: Operator::GreatestFixpoint,
-                lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
-                rhs: Box::new(parse_logic(&expression[rhs_idx+1..])),
+                variable: expression[2..rhs_idx].to_string(),
+                rhs: Box::new(parse_logic(&expression[rhs_idx+1..], Operator::GreatestFixpoint)),
+                surrounding_binder: binder
             };
         } else if expression.starts_with("[") && expression.contains("]") {
             (action, variable) = extract_bracketed_strings(expression, "box");
             return Node::BinaryExpr {
                 op: Operator::BoxModality,
                 lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(parse_logic(variable)),
+                rhs: Box::new(parse_logic(variable, Operator::None)),
             };
         } else if expression.starts_with("<") && expression.contains(">") {
             (action, variable) = extract_bracketed_strings(expression, "diamond");
             return Node::BinaryExpr {
                 op: Operator::DiamondModality,
                 lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(parse_logic(variable)),
+                rhs: Box::new(parse_logic(variable, Operator::None)),
             };
         } else if expression == "true" {
             return Node::UnaryExpr { op: Operator::SimpleTrue }
@@ -89,21 +93,21 @@ pub fn parse_logic(expression: &str) -> Node {
         if and_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Conjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()))),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string())))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), Operator::None))
             }
         } else if or_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Disjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()))),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string())))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string()), Operator::None))
             }
         }
         let (first_part, operator, second_part) = get_junctions(expression);
         return Node::BinaryExpr {
             op: operator,
-            lhs: Box::new(parse_logic(first_part)),
-            rhs: Box::new(parse_logic(second_part))
+            lhs: Box::new(parse_logic(first_part, Operator::None)),
+            rhs: Box::new(parse_logic(second_part, Operator::None))
         };
     } else {
         let mut lhs = Node::Variable("TODO".to_string());
@@ -113,15 +117,15 @@ pub fn parse_logic(expression: &str) -> Node {
             operator = Operator::Conjunction;
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()))),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string())))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), Operator::None))
             }
         } else if or_index != usize::MAX {
             operator = Operator::Disjunction;
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()))),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string())))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string()), Operator::None))
             }
         }
         if let Some(extracted) = extract_text_before_brackets(expression) {
@@ -137,33 +141,35 @@ pub fn parse_logic(expression: &str) -> Node {
                 return Node::BinaryExpr {
                     op: Operator::BoxModality,
                     lhs: Box::new(Node::Action((*action).to_string())),
-                    rhs: Box::new(parse_logic(variable)),
+                    rhs: Box::new(parse_logic(variable, Operator::None)),
                 };
             } else if extracted.starts_with("<") {
                 let (action, variable) = extract_bracketed_strings(expression, "diamond");
                 return Node::BinaryExpr {
                     op: Operator::DiamondModality,
                     lhs: Box::new(Node::Action((*action).to_string())),
-                    rhs: Box::new(parse_logic(variable)),
+                    rhs: Box::new(parse_logic(variable, Operator::None)),
                 };
                 // lhs = Node::Variable(extracted[0..3].to_string());
             } else if extracted.starts_with("mu") {
                 let rhs_idx = expression.find('.')
                     .expect(". must be found");
     
-                return Node::BinaryExpr {
+                return Node::FixPointExpr {
                     op: Operator::LeastFixpoint,
-                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
-                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
+                    variable: expression[2..rhs_idx].to_string(),
+                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()), Operator::LeastFixpoint)),
+                    surrounding_binder: binder
                 };
             } else if extracted.starts_with("nu") {
                 let rhs_idx = expression.find('.')
                     .expect(". must be found");
     
-                return Node::BinaryExpr {
+                return Node::FixPointExpr {
                     op: Operator::GreatestFixpoint,
-                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
-                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
+                    variable: expression[2..rhs_idx].to_string(),
+                    rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()), Operator::GreatestFixpoint)),
+                    surrounding_binder: binder
                 };
             } else {
                 // parse_logic(extracted);
@@ -183,7 +189,7 @@ pub fn parse_logic(expression: &str) -> Node {
             //     operator = Operator::Disjunction;
             //     lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
             // }
-            return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted)) };
+            return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted, Operator::None)) };
         };
     }
     println!("PANIC {}", expression);
@@ -345,6 +351,10 @@ fn extract_variables_from_node(node: &Node, variables: &mut HashSet<String>) {
             extract_variables_from_node(lhs, variables);
             extract_variables_from_node(rhs, variables);
         }
+        Node::FixPointExpr { op: _, variable, rhs , surrounding_binder: _} => {
+            variables.insert(variable.clone());
+            extract_variables_from_node(rhs, variables);
+        }
         Node::UnaryExpr { .. } | Node::Action(_) => {}
     }
 }
@@ -362,6 +372,9 @@ fn extract_actions_from_node(node: &Node, actions: &mut HashSet<String>) {
         }
         Node::BinaryExpr { lhs, rhs, .. } => {
             extract_actions_from_node(lhs, actions);
+            extract_actions_from_node(rhs, actions);
+        }
+        Node::FixPointExpr { op: _, variable: _, rhs, surrounding_binder: _ } => {
             extract_actions_from_node(rhs, actions);
         }
         Node::UnaryExpr { .. } | Node::Variable(_) => {}
@@ -394,6 +407,11 @@ pub fn print_ast(node: &Node, indent: usize) -> String {
             output.push_str(&print_ast(lhs, indent + 4));
             output.push_str(&print_ast(rhs, indent + 4));
         }
+        Node::FixPointExpr { op, variable, rhs, surrounding_binder: _ } => {
+            output.push_str(&format!("{:indent$}FixPointExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}Variable({})\n", "", variable, indent = indent + 4));
+            output.push_str(&print_ast(rhs, indent + 4));
+        }
     }
     output
 }
@@ -412,9 +430,10 @@ impl Formula {
 
         println!("{}", formula);
 
-        let parsed_formula = parse_logic(&formula);
+        let parsed_formula = parse_logic(&formula, Operator::None);
         println!("{}", print_ast(&parsed_formula, 0));
-        
+    
+
         return Self{
             variables: extract_variables(&parsed_formula),
             actions: extract_actions(&parsed_formula),
