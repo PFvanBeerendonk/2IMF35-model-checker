@@ -44,9 +44,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                         let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map);
                         return instance.get_diamond_modality(string, states_rhs)
                     }
-                    Node::Variable(_) => unreachable!(),
-                    Node::UnaryExpr { op: _ } => unreachable!(),
-                    Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
+                    Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
                     Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else if op == Operator::BoxModality {
@@ -56,9 +54,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                         let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map);
                         return instance.get_box_modality(string, states_rhs)
                     }
-                    Node::Variable(_) => unreachable!(),
-                    Node::UnaryExpr { op: _ } => unreachable!(),
-                    Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
+                    Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
                     Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else {
@@ -66,11 +62,6 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
             }
         }
         Node::UnaryExpr { op } => {
-            // if op == Operator::Negate {
-            //     let eval_child = eval(*child);
-            //     let all_states: HashSet<String> = HashSet::new(); // TODO
-            //     return all_states.difference(&eval_child).map(|x| x.to_string()).collect::<HashSet<String>>();
-            // } else
             if op == Operator::SimpleTrue {
                 let all_states = instance.get_all_states(); // TODO
                 return all_states;
@@ -156,9 +147,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                         let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map);
                         return instance.get_diamond_modality(string, states_rhs)
                     }
-                    Node::Variable(_) => unreachable!(),
-                    Node::UnaryExpr { op: _ } => unreachable!(),
-                    Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
+                    Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
                     Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else if op == Operator::BoxModality {
@@ -168,9 +157,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                         let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map);
                         return instance.get_box_modality(string, states_rhs)
                     }
-                    Node::Variable(_) => unreachable!(),
-                    Node::UnaryExpr { op: _ } => unreachable!(),
-                    Node::BinaryExpr { op: _, lhs: _, rhs: _ } => unreachable!(),
+                    Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
                     Node::FixPointExpr { op: _, variable: _, rhs: _, surrounding_binder: _ } => unreachable!(),
                 }
             } else {
@@ -178,11 +165,6 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
             }
         }
         Node::UnaryExpr { op } => {
-            // if op == Operator::Negate {
-            //     let eval_child = eval(*child);
-            //     let all_states: HashSet<String> = HashSet::new(); // TODO
-            //     return all_states.difference(&eval_child).map(|x| x.to_string()).collect::<HashSet<String>>();
-            // } else
             if op == Operator::SimpleTrue {
                 let all_states = instance.get_all_states(); // TODO
                 return all_states;
