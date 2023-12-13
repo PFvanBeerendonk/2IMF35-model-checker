@@ -1,0 +1,7 @@
+BinaryExpr(GreatestFixpoint)
+    Variable(X)
+    BinaryExpr(Conjunction)
+        Variable(X)
+        BinaryExpr(LeastFixpoint)
+            Variable(Y)
+            Variable(Y)

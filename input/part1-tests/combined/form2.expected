@@ -1,0 +1,5 @@
+BinaryExpr(GreatestFixpoint)
+    Variable(X)
+    BinaryExpr(DiamondModality)
+        Action("tau")
+        Variable(X)
