@@ -380,8 +380,8 @@ pub fn print_ast(node: &Node, indent: usize) -> String {
             output.push_str(&print_ast(rhs, indent + 4));
         }
         Node::FixPointExpr { op, variable, rhs, surrounding_binder: _ } => {
-            output.push_str(&format!("{:indent$}FixPointExpr({:?})\n", "", op, indent = indent));
-            output.push_str(&format!("{:indent$}Variable({})\n", "", variable, indent = indent + 4));
+            output.push_str(&format!("{:indent$}FixPointExpr({:?})\r\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}Variable({})\r\n", "", variable, indent = indent + 4));
             output.push_str(&print_ast(rhs, indent + 4));
         }
     }

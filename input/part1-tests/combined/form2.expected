@@ -1,4 +1,4 @@
-BinaryExpr(GreatestFixpoint)
+FixPointExpr(GreatestFixpoint)
     Variable(X)
     BinaryExpr(DiamondModality)
         Action("tau")
