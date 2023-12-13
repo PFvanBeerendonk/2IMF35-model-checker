@@ -33,7 +33,7 @@ pub fn parse_logic(expression: &str) -> Node {
     let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
         let action: &str;
-        let mut variable = "";
+        let variable: &str;
         if expression.contains("&&") || expression.contains("||") {
             let (first_part, operator, second_part) = get_junctions(expression);
             return Node::BinaryExpr {
@@ -77,11 +77,6 @@ pub fn parse_logic(expression: &str) -> Node {
         } else if expression == "false" {
             return Node::UnaryExpr { op: Operator::SimpleFalse }
         }
-        if variable == "true" {
-            return Node::UnaryExpr{ op: Operator::SimpleTrue };
-        } else if variable == "false" {
-            return Node::UnaryExpr{ op: Operator::SimpleFalse };
-        }
         return Node::Variable(expression.to_string());
     } else if expression.starts_with("(")  {
         let and_index = check_junction_after_paren(expression, "&&");
@@ -106,7 +101,6 @@ pub fn parse_logic(expression: &str) -> Node {
             rhs: Box::new(parse_logic(second_part))
         };
     } else {
-        let mut lhs = Node::Variable("TODO".to_string());
         let and_index = check_junction_before_paren(expression, "&&");
         let or_index = check_junction_before_paren(expression, "||");
         if and_index != usize::MAX {
@@ -125,14 +119,8 @@ pub fn parse_logic(expression: &str) -> Node {
             }
         }
         if let Some(extracted) = extract_text_before_brackets(expression) {
-            // do mu, nu, <>, [], &&, and ||
-            if extracted.ends_with("&&") {
-                operator = Operator::Conjunction;
-                lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            } else if extracted.ends_with("||") {
-                operator = Operator::Disjunction;
-                lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            } else if extracted.starts_with("[") {
+            // do mu, nu, <>, and []
+            if extracted.starts_with("[") {
                 let (action, variable) = extract_bracketed_strings(expression, "box");
                 return Node::BinaryExpr {
                     op: Operator::BoxModality,
@@ -153,7 +141,7 @@ pub fn parse_logic(expression: &str) -> Node {
     
                 return Node::BinaryExpr {
                     op: Operator::LeastFixpoint,
-                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
+                    lhs: Box::new(parse_logic(&extracted[2..rhs_idx])),
                     rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
                 };
             } else if extracted.starts_with("nu") {
@@ -162,28 +150,12 @@ pub fn parse_logic(expression: &str) -> Node {
     
                 return Node::BinaryExpr {
                     op: Operator::GreatestFixpoint,
-                    lhs: Box::new(Node::Variable(expression[2..rhs_idx].to_string())),
+                    lhs: Box::new(parse_logic(&extracted[2..rhs_idx])),
                     rhs: Box::new(parse_logic(&remove_brackets(expression[rhs_idx + 1..].to_string()))),
                 };
             } else {
                 // parse_logic(extracted);
             }
-        };
-        if let Some(extracted) = extract_text_between_brackets(expression) {
-            println!("WTF {:?}, {:?}", extract_text_before_brackets(expression), extract_text_between_brackets(expression));
-            // let rhs: Node;
-            // if extracted.starts_with("&&") {
-            //     // return Node::BinaryExpr {
-            //     //     op: Operator::Conjunction,
-            //     //     lhs: Box::new(lhs),
-            //     //     rhs: (),
-            //     // }
-            //     rhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            // } else if extracted.starts_with("||") {
-            //     operator = Operator::Disjunction;
-            //     lhs = Node::Variable(extracted[..extracted.len()-2].to_string());
-            // }
-            return Node::BinaryExpr { op: operator, lhs: Box::new(lhs), rhs: Box::new(parse_logic(extracted)) };
         };
     }
     println!("PANIC {}", expression);
