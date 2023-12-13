@@ -20,11 +20,11 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
         Node::Variable(string) => {
             // X_i, TODO not sure about array yet.
             if (*variable_map).contains_key(&string.clone()) {
-                return retrieve_element(variable_map.get(&string.clone())).clone();
+                return variable_map.get(&string.clone()).unwrap().clone();
             } else {
                 // TODO: Look at, do we actually want to insert this element? 
                 (*variable_map).insert(string.clone(), HashSet::new());
-                return retrieve_element(variable_map.get(&string.clone())).clone();
+                return variable_map.get(&string.clone()).unwrap().clone();
             }
         }
         Node::BinaryExpr { op, lhs, rhs } => {
@@ -98,28 +98,17 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
     }
 }
 
-fn retrieve_element(element: Option<&HashSet<i64>>) -> &HashSet<i64> {
-    match element {
-        Some(x) => {
-            return x;
-        }
-        None => {
-            panic!("Should not happen");
-        }
-    }
-}
-
 fn calculate_fixpoint(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>) -> HashSet<i64> {
     // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
     let mut x_prime: HashSet<i64> = HashSet::from([1]); 
-    let mut a = retrieve_element(variable_map.get(&string.clone())).clone();
+    let mut a = variable_map.get(&string.clone()).unwrap().clone();
     while x_prime != a {
         x_prime = a.clone();
         let temp = eval(g.clone(), instance, variable_map);
         (*variable_map).insert(string.clone(), temp);
-        a = retrieve_element(variable_map.get(&string.clone())).clone();
+        a = variable_map.get(&string.clone()).unwrap().clone();
     }
-    return retrieve_element(variable_map.get(&string.clone())).clone();
+    return variable_map.get(&string.clone()).unwrap().clone();
 }
 
 pub fn execute_improved(f: Formula, instance:Ltl) -> HashSet<i64> {
@@ -143,11 +132,11 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
         Node::Variable(string) => {
             // X_i, TODO not sure about array yet.
             if (*variable_map).contains_key(&string.clone()) {
-                return retrieve_element(variable_map.get(&string.clone())).clone();
+                return variable_map.get(&string.clone()).unwrap().clone();
             } else {
                 // TODO: Look at, do we actually want to insert this element? 
                 (*variable_map).insert(string.clone(), HashSet::new());
-                return retrieve_element(variable_map.get(&string.clone())).clone();
+                return variable_map.get(&string.clone()).unwrap().clone();
             }
         }
         Node::BinaryExpr { op, lhs, rhs } => {
@@ -293,14 +282,14 @@ fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_
     variables_open_map: &HashMap<String, HashSet<String>>) -> HashSet<i64> {
     // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
     let mut x_prime: HashSet<i64> = HashSet::from([1]); 
-    let mut a = retrieve_element(variable_map.get(&string.clone())).clone();
+    let mut a = variable_map.get(&string.clone()).unwrap().clone();
     while x_prime != a {
         x_prime = a.clone();
         let temp = eval_improved(g.clone(), instance, variable_map, variables_open_map);
         (*variable_map).insert(string.clone(), temp);
-        a = retrieve_element(variable_map.get(&string.clone())).clone();
+        a = variable_map.get(&string.clone()).unwrap().clone();
     }
-    return retrieve_element(variable_map.get(&string.clone())).clone();
+    return variable_map.get(&string.clone()).unwrap().clone();
 }
 
 
