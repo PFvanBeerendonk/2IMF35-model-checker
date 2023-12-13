@@ -38,14 +38,13 @@ fn main() {
     let f: Formula = read_mcf_file(args.mcf_file);
     let ltl: Ltl = read_aut_file(args.aut_file);
 
-    let mut result_set: HashSet<i64> = HashSet::new();
+    // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
-        result_set = execute_improved(f, ltl);
-
+        print_set(execute_improved(f, ltl));
     } else {
-        result_set = execute(f, ltl);
+        print_set(execute(f, ltl));
     }
-    print_set(result_set);
+    
 
     println!("\nTerminated Succesfully");
 
@@ -68,6 +67,10 @@ fn print_set(set: HashSet<i64>) {
  * Read .aut file and convert to DataType
  */
 fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
+    if !file_path.exists() {
+        panic!("File {:?} does not exist", file_path);
+    }
+
     if "aut" != file_path.extension().unwrap() {
         panic!("File {:?} should have been of type .aut", file_path);
     }
@@ -125,6 +128,10 @@ fn to_int64(f: &str) -> i64 {
  * Read .mcf file and convert to DataType
  */
 fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
+    if !file_path.exists() {
+        panic!("File {:?} does not exist", file_path);
+    }
+
     if "mcf" != file_path.extension().unwrap() {
         panic!("File {:?} should have been of type .mcf", file_path);
     }
