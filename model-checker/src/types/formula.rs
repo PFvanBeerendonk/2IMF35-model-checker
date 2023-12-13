@@ -353,16 +353,16 @@ pub fn print_ast(node: &Node, indent: usize) -> String {
 
     match node {
         Node::Variable(var) => {
-            output.push_str(&format!("{:indent$}Variable({})\n", "", var, indent = indent));
+            output.push_str(&format!("{:indent$}Variable({})\r\n", "", var, indent = indent));
         }
         Node::Action(act) => {
-            output.push_str(&format!("{:indent$}Action({:?})\n", "", act, indent = indent));
+            output.push_str(&format!("{:indent$}Action({:?})\r\n", "", act, indent = indent));
         }
         Node::UnaryExpr { op } => {
-            output.push_str(&format!("{:indent$}UnaryExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}UnaryExpr({:?})\r\n", "", op, indent = indent));
         }
         Node::BinaryExpr { op, lhs, rhs } => {
-            output.push_str(&format!("{:indent$}BinaryExpr({:?})\n", "", op, indent = indent));
+            output.push_str(&format!("{:indent$}BinaryExpr({:?})\r\n", "", op, indent = indent));
             output.push_str(&print_ast(lhs, indent + 4));
             output.push_str(&print_ast(rhs, indent + 4));
         }
