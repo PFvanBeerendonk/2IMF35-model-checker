@@ -24,7 +24,7 @@ impl Ltl{
      * Initialize initial node, and all nodes
      * 
      */
-    pub fn new(first_state: i64, nr_of_transitions: i64, nr_of_states: i64) -> Self{
+    pub fn new(first_state: i64, _: i64, nr_of_states: i64) -> Self{
         // Build a hashMap with all states prefilled, pointing to empty (sub-)hashMaps
         let transition_dict: HashMap<i64, HashMap< String, HashSet<i64>>> = (0..nr_of_states) // range 0,1,2,...,nr_of_states
         .map(|chunk| (chunk, HashMap::new())) // map them to tuples of the right type

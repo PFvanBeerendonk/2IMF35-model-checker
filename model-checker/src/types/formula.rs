@@ -1,11 +1,7 @@
-use std::collections::HashSet;
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
     SimpleFalse, // f = false
     SimpleTrue,  // f = true
-    StateLabel, // f = p NEEDED?
-    Negate, // f = ¬g NOT USED
     Conjunction, // f = g1 ∧ g2
     Disjunction, // f = g1 ∨ g2
     DiamondModality, // f = [a]g
@@ -30,7 +26,6 @@ pub struct Formula {
 
 pub fn parse_logic(expression: &str, binder:Operator) -> Node {
     let expression = expression.trim();
-    let mut operator = Operator::SimpleFalse;
     if !expression.contains("(") {
         let action: &str;
         let variable: &str;
@@ -106,14 +101,14 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
         let and_index = check_junction_before_paren(expression, "&&");
         let or_index = check_junction_before_paren(expression, "||");
         if and_index != usize::MAX {
-            operator = Operator::Conjunction;
+            let operator = Operator::Conjunction;
             return Node::BinaryExpr {
                 op: operator,
                 lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), Operator::None)),
                 rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), Operator::None))
             }
         } else if or_index != usize::MAX {
-            operator = Operator::Disjunction;
+            let operator = Operator::Disjunction;
             return Node::BinaryExpr {
                 op: operator,
                 lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), Operator::None)),
@@ -170,13 +165,6 @@ fn extract_text_before_brackets(text: &str) -> Option<&str> {
     let before_brackets = text.splitn(2, '(').next()?;
 
     Some(before_brackets)
-}
-
-fn extract_text_between_brackets(text: &str) -> Option<&str> {
-    let start_idx = text.find('(')?;
-    let end_idx = text.rfind(')')?;
-
-    Some(&text[start_idx+1..end_idx])
 }
 
 fn get_strings_between_brackets(s: &str) -> Option<&str> {
