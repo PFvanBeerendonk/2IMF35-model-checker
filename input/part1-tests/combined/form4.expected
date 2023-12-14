@@ -1,6 +1,6 @@
-BinaryExpr(GreatestFixpoint)
+FixPointExpr(GreatestFixpoint)
     Variable(X)
-    BinaryExpr(LeastFixpoint)
+    FixPointExpr(LeastFixpoint)
         Variable(Y)
         BinaryExpr(Disjunction)
             BinaryExpr(Disjunction)

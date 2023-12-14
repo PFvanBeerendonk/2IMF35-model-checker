@@ -153,6 +153,41 @@ mod test_get_box_modality {
         // 3 has no outgoing
         assert_eq!(boxmod, HashSet::from([2, 3]))
     }
+
+    #[test]
+    fn test_box_modality_emptyset_modal_operators_form3() {
+        let mut simple_ltl =  Ltl::new(
+            0,
+            14,
+            8,
+        );
+        let transitions: [(i64, &str, i64); 14] = [
+            (0, "tau", 1),
+            (0, "tau", 2),
+            (1, "tau", 3),
+            (1, "tau", 4),
+            (2, "tau", 5),
+            (2, "tau", 4),
+            (3, "b", 0),
+            (3, "a", 6),
+            (4, "tau", 7),
+            (4, "tau", 6),
+            (5, "a", 0),
+            (5, "a", 7),
+            (6, "tau", 2),
+            (7, "b", 1)
+        ];
+        for (s, a, t) in transitions.iter() {
+            simple_ltl.add_transition(s.clone(), a, t.clone());
+        }
+        
+        let out_states = HashSet::from([]);
+
+        // [tau]{} i.e. get the states where all a-transitions go into \tempyset
+        let boxmod = simple_ltl.get_box_modality(String::from("tau") , out_states);
+
+        assert_eq!(boxmod, HashSet::from([3, 5, 7]))
+    }
 }
 
 

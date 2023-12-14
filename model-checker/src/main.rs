@@ -1,5 +1,6 @@
 use std::fs;
 use clap::Parser;
+use std::collections::HashSet;
 
 // local imports
 mod solver;
@@ -37,16 +38,28 @@ fn main() {
     let f: Formula = read_mcf_file(args.mcf_file);
     let ltl: Ltl = read_aut_file(args.aut_file);
 
-    
+    // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
-        execute_improved(f, ltl);
-
+        print_set(execute_improved(f, ltl));
     } else {
-        execute(f, ltl);
+        print_set(execute(f, ltl));
     }
+    
 
     println!("\nTerminated Succesfully");
 
+}
+
+fn print_set(set: HashSet<i64>) {
+    print!("Resulting set: ");
+    print!("{{");
+    for (i, el) in set.iter().enumerate()  {
+        print!("{}", el);
+        if i != set.len()-1 {
+            print!(",");
+        }
+    }
+    println!("}}");
 }
 
 
@@ -54,6 +67,10 @@ fn main() {
  * Read .aut file and convert to DataType
  */
 fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
+    if !file_path.exists() {
+        panic!("File {:?} does not exist", file_path);
+    }
+
     if "aut" != file_path.extension().unwrap() {
         panic!("File {:?} should have been of type .aut", file_path);
     }
@@ -86,7 +103,7 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
     for part in lines.skip(1) {
         let (start, last) = part.split_at(1);
         if "(" != start {
-            !panic!("Line '{}' did not start with '('", part)
+            panic!("Line '{}' did not start with '('", part)
         }
         let seconds: Vec<&str> = last.split(")").collect();
         let nums: Vec<&str> = seconds[0].split(",").collect();
@@ -111,6 +128,10 @@ fn to_int64(f: &str) -> i64 {
  * Read .mcf file and convert to DataType
  */
 fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
+    if !file_path.exists() {
+        panic!("File {:?} does not exist", file_path);
+    }
+
     if "mcf" != file_path.extension().unwrap() {
         panic!("File {:?} should have been of type .mcf", file_path);
     }
