@@ -1,4 +1,4 @@
-BinaryExpr(LeastFixpoint)
+FixPointExpr(LeastFixpoint)
     Variable(X)
     BinaryExpr(Conjunction)
         BinaryExpr(BoxModality)
