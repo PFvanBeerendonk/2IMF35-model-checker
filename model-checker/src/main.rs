@@ -30,8 +30,8 @@ struct Args {
     #[arg(short, long, default_value_t=false)]
     improved: bool,
 
-    #[arg(short, long)]
-    test_state: String,
+    #[arg(short, long, default_value_t=-1)]
+    test_state: i64,
 }
 
 
@@ -44,10 +44,10 @@ fn main() {
     // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
         let (result_set, iterations) = execute_improved(f, ltl);
-        print_set(result_set, iterations, args.test_state.parse::<i64>().unwrap());
+        print_set(result_set, iterations, args.test_state);
     } else {
         let (result_set, iterations) = execute(f, ltl);
-        print_set(result_set, iterations, args.test_state.parse::<i64>().unwrap());
+        print_set(result_set, iterations, args.test_state);
     }
     
 
@@ -65,7 +65,9 @@ fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64) {
         }
     }
     println!("}}");
-    println!("The state {} is in the resulting set: {}", test_state, set.contains(&test_state));
+    if test_state != -1 {
+        println!("The state {} is in the resulting set: {}", test_state, set.contains(&test_state));
+    }
     print!("Total number of fixpoint iterations: {}\n", iterations);
 }
 
