@@ -40,9 +40,11 @@ fn main() {
 
     // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
-        print_set(execute_improved(f, ltl));
+        let (result_set, iterations) = execute_improved(f, ltl);
+        print_set(result_set, iterations);
     } else {
-        print_set(execute(f, ltl));
+        let (result_set, iterations) = execute(f, ltl);
+        print_set(result_set, iterations);
     }
     
 
@@ -50,7 +52,7 @@ fn main() {
 
 }
 
-fn print_set(set: HashSet<i64>) {
+fn print_set(set: HashSet<i64>, iterations: i64) {
     print!("Resulting set: ");
     print!("{{");
     for (i, el) in set.iter().enumerate()  {
@@ -60,6 +62,7 @@ fn print_set(set: HashSet<i64>) {
         }
     }
     println!("}}");
+    print!("Total number of fixpoint iterations: {}\n", iterations);
 }
 
 

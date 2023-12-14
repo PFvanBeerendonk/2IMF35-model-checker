@@ -8,14 +8,15 @@ use std::collections::HashSet;
 
 
 // Given a formula `f`, evaluate it over `ltl`
-pub fn execute(f: Formula, instance:Ltl) -> HashSet<i64> {
+pub fn execute(f: Formula, instance:Ltl) -> (HashSet<i64>, i64) {
     let mut variable_map: HashMap<String,HashSet<i64>> = HashMap::new();
-    return eval(f.root_node, &instance, &mut variable_map);
+    let mut iterations: i64 = 0;
+    (eval(f.root_node, &instance, &mut variable_map, &mut iterations), iterations)
     // let mut set = init(f, instance);
     
 }
 
-fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>) -> HashSet<i64> {
+fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, iterations: &mut i64) -> HashSet<i64> {
     match node {
         Node::Variable(string) => {
             // X_i, TODO not sure about array yet.
@@ -30,18 +31,18 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
         Node::BinaryExpr { op, lhs, rhs } => {
             if op == Operator::Conjunction {
                 // Not sure if this can be done cleaner tbh, maybe hashset intersection isn't so nice after all...
-                let eval_lhs = eval(*lhs, instance, variable_map);
-                let eval_rhs = eval(*rhs, instance, variable_map);
+                let eval_lhs = eval(*lhs, instance, variable_map, iterations);
+                let eval_rhs = eval(*rhs, instance, variable_map, iterations);
                 return eval_lhs.intersection(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else if op == Operator::Disjunction {
-                let eval_lhs = eval(*lhs, instance, variable_map);
-                let eval_rhs = eval(*rhs, instance, variable_map);
+                let eval_lhs = eval(*lhs, instance, variable_map, iterations);
+                let eval_rhs = eval(*rhs, instance, variable_map, iterations);
                 return eval_lhs.union(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else if op == Operator::DiamondModality {
                 let node = *lhs;
                 match node {
                     Node::Action(string) => {
-                        let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map);
+                        let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map, iterations);
                         return instance.get_diamond_modality(string, states_rhs)
                     }
                     Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
@@ -51,7 +52,7 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
                 let node = *lhs;
                 match node {
                     Node::Action(string) => {
-                        let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map);
+                        let states_rhs: HashSet<i64> = eval(*rhs, instance, variable_map, iterations);
                         return instance.get_box_modality(string, states_rhs)
                     }
                     Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
@@ -75,10 +76,10 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
         Node::FixPointExpr { op, variable, rhs, surrounding_binder: _ } => {
             if op == Operator::GreatestFixpoint {
                 (*variable_map).insert(variable.clone(), instance.get_all_states());
-                return calculate_fixpoint(variable, *rhs, instance, variable_map)
+                return calculate_fixpoint(variable, *rhs, instance, variable_map, iterations)
             } else if op == Operator::LeastFixpoint {
                 (*variable_map).insert(variable.clone(), HashSet::new());
-                return calculate_fixpoint(variable, *rhs, instance, variable_map)
+                return calculate_fixpoint(variable, *rhs, instance, variable_map, iterations)
             } else {
                 panic!("This should not happen");
             }
@@ -89,24 +90,26 @@ fn eval(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64
     }
 }
 
-fn calculate_fixpoint(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>) -> HashSet<i64> {
+fn calculate_fixpoint(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, iterations: &mut i64) -> HashSet<i64> {
     // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
     let mut x_prime: HashSet<i64> = HashSet::from([1]); 
     let mut a = variable_map.get(&string.clone()).unwrap().clone();
     while x_prime != a {
         x_prime = a.clone();
-        let temp = eval(g.clone(), instance, variable_map);
+        let temp = eval(g.clone(), instance, variable_map, iterations);
         (*variable_map).insert(string.clone(), temp);
         a = variable_map.get(&string.clone()).unwrap().clone();
+        *iterations += 1;
     }
     return variable_map.get(&string.clone()).unwrap().clone();
 }
 
-pub fn execute_improved(f: Formula, instance:Ltl) -> HashSet<i64> {
+pub fn execute_improved(f: Formula, instance:Ltl) -> (HashSet<i64>, i64) {
     let (variables_open_map, variables_nu, variables_mu) = find_open_variables(&f.root_node);
     let mut variables_map = HashMap::new();
     initialize_variable_map(&instance, &mut variables_map, &variables_nu, &variables_mu);
-    eval_improved(f.root_node, &instance, &mut variables_map, &variables_open_map)
+    let mut iterations = 0;
+    (eval_improved(f.root_node, &instance, &mut variables_map, &variables_open_map, &mut iterations), iterations)
 }
 
 fn initialize_variable_map(instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, variables_nu: &HashSet<String>, variables_mu: &HashSet<String>) {
@@ -118,7 +121,8 @@ fn initialize_variable_map(instance:&Ltl, variable_map: &mut HashMap<String,Hash
     }
 }
 
-fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, variables_open_map: &HashMap<String, HashSet<String>>) -> HashSet<i64> {
+fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, variables_open_map: &HashMap<String
+    , HashSet<String>>, iterations: &mut i64) -> HashSet<i64> {
     match node {
         Node::Variable(string) => {
             // X_i, TODO not sure about array yet.
@@ -133,18 +137,18 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
         Node::BinaryExpr { op, lhs, rhs } => {
             if op == Operator::Conjunction {
                 // Not sure if this can be done cleaner tbh, maybe hashset intersection isn't so nice after all...
-                let eval_lhs = eval_improved(*lhs, instance, variable_map, variables_open_map);
-                let eval_rhs = eval_improved(*rhs, instance, variable_map, variables_open_map);
+                let eval_lhs = eval_improved(*lhs, instance, variable_map, variables_open_map, iterations);
+                let eval_rhs = eval_improved(*rhs, instance, variable_map, variables_open_map, iterations);
                 return eval_lhs.intersection(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else if op == Operator::Disjunction {
-                let eval_lhs = eval_improved(*lhs, instance, variable_map, variables_open_map);
-                let eval_rhs = eval_improved(*rhs, instance, variable_map, variables_open_map);
+                let eval_lhs = eval_improved(*lhs, instance, variable_map, variables_open_map, iterations);
+                let eval_rhs = eval_improved(*rhs, instance, variable_map, variables_open_map, iterations);
                 return eval_lhs.union(&eval_rhs).map(|x| *x).collect::<HashSet<i64>>();
             } else if op == Operator::DiamondModality {
                 let node = *lhs;
                 match node {
                     Node::Action(string) => {
-                        let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map);
+                        let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map, iterations);
                         return instance.get_diamond_modality(string, states_rhs)
                     }
                     Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
@@ -154,7 +158,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                 let node = *lhs;
                 match node {
                     Node::Action(string) => {
-                        let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map);
+                        let states_rhs: HashSet<i64> = eval_improved(*rhs, instance, variable_map, variables_open_map, iterations);
                         return instance.get_box_modality(string, states_rhs)
                     }
                     Node::Variable(_) | Node::UnaryExpr { op: _ } | Node::BinaryExpr { op: _, lhs: _, rhs: _ } | 
@@ -184,7 +188,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                         }
                     }
                 }
-                return calculate_fixpoint_improved(variable, *rhs, instance, variable_map, variables_open_map)
+                return calculate_fixpoint_improved(variable, *rhs, instance, variable_map, variables_open_map, iterations)
             } else if op == Operator::LeastFixpoint {
                 if surrounding_binder == Operator::GreatestFixpoint {
                     if let Some(value) = variables_open_map.get(&variable) {
@@ -194,7 +198,7 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
                     }
                 }
                 (*variable_map).insert(variable.clone(), HashSet::new());
-                return calculate_fixpoint_improved(variable, *rhs, instance, variable_map, variables_open_map)
+                return calculate_fixpoint_improved(variable, *rhs, instance, variable_map, variables_open_map, iterations)
             } else {
                 panic!("This should not happen");
             }
@@ -261,15 +265,16 @@ fn find_variables(node: &Node, variables_mu: &mut HashSet<String>, variables_nu:
 }
 
 fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, 
-    variables_open_map: &HashMap<String, HashSet<String>>) -> HashSet<i64> {
+    variables_open_map: &HashMap<String, HashSet<String>>, iterations: &mut i64) -> HashSet<i64> {
     // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
     let mut x_prime: HashSet<i64> = HashSet::from([1]); 
     let mut a = variable_map.get(&string.clone()).unwrap().clone();
     while x_prime != a {
         x_prime = a.clone();
-        let temp = eval_improved(g.clone(), instance, variable_map, variables_open_map);
+        let temp = eval_improved(g.clone(), instance, variable_map, variables_open_map, iterations);
         (*variable_map).insert(string.clone(), temp);
         a = variable_map.get(&string.clone()).unwrap().clone();
+        *iterations += 1;
     }
     return variable_map.get(&string.clone()).unwrap().clone();
 }
