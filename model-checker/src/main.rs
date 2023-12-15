@@ -45,11 +45,14 @@ struct Args {
 
 
 fn main() {
+    // Parse the arguments:
     let args: Args = Args::parse();
 
+    // Read the formula and ltl:
     let f: Formula = read_mcf_file(args.mcf_file, args.debug);
     let ltl: Ltl = read_aut_file(args.aut_file, args.debug);
 
+    // If we want the nesting depth, alteration depth and dependent alteration depth, calculate these and print them:
     if args.statistics {
         let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
         print!("The nesting depth for this formula is: {}\n", nesting_depth);
@@ -57,7 +60,7 @@ fn main() {
         print!("The dependent alteration depth for this formula is: {}\n", dependent_alteration_depth);
     }
 
-    // let mut result_set: HashSet<i64> = HashSet::new();
+    // Execute the required algorithm and print the result:
     if args.improved {
         let (result_set, iterations) = execute_improved(f, ltl);
         print_set(result_set, iterations, args.test_state, args.statistics);
@@ -70,6 +73,9 @@ fn main() {
 
 }
 
+/**
+ * Method to print the resulting set, and optionally the number of iterations and whether a given state is in the set
+ */
 fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64, statistics:bool) {
     print!("Resulting set: ");
     print!("{{");
@@ -80,9 +86,11 @@ fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64, statistics:boo
         }
     }
     println!("}}");
+    // If we want to test if a given state is in the set (test_state is not equal to -1), print this:
     if test_state != -1 {
         println!("The state {} is in the resulting set: {}", test_state, set.contains(&test_state));
     }
+    // If we want to print the number of iterations, print this:
     if statistics {
         println!("Total number of fixpoint iterations: {}", iterations);
     }
