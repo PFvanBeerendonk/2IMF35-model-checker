@@ -69,7 +69,13 @@ fn main() {
             print!("The dependent alteration depth for this formula is: {}\n", dependent_alteration_depth);
         }
 
-        run_and_print(f, ltl, args.improved, args.test_state, args.statistics);
+        if args.improved {
+            let (result_set, iterations) = execute_improved(f, ltl);
+            print_set(result_set, iterations, args.test_state, args.statistics);
+        } else {
+            let (result_set, iterations) = execute(f, ltl);
+            print_set(result_set, iterations, args.test_state, args.statistics);
+        }
 
         println!("\nTerminated Succesfully");
     }
@@ -86,22 +92,33 @@ fn run_folder(args: &Args, benchmarks: &mut String) {
                 if aut_file_name.ends_with(".aut") {
                     let original_ltl = read_aut_file(entry.path().to_path_buf(), args.debug);
                     for mcf_entry in WalkDir::new(folder).into_iter().filter_map(|e| e.ok()) {
-                        let ltl = original_ltl.clone();
+                        let ltl_naive = original_ltl.clone();
+                        let ltl_improved = original_ltl.clone();
                         if let Some(mcf_file_name) = mcf_entry.file_name().to_str() {
                             if mcf_file_name.ends_with(".mcf") {
-                                let f = read_mcf_file(mcf_entry.path().to_path_buf(), args.debug);
-                                let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
+                                let f_improved = read_mcf_file(mcf_entry.path().to_path_buf(), args.debug);
+                                let f_naive = read_mcf_file(mcf_entry.path().to_path_buf(), args.debug);
+                                let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f_naive.root_node);
                                 let now = std::time::Instant::now();
-                                let elapsed: std::time::Duration;
-                                run_and_print(f, ltl, args.improved, args.test_state, args.statistics);
-                                elapsed = now.elapsed();
-                                
+                                let (_, _) = execute(f_naive, ltl_naive);
+                                let elapsed = now.elapsed();
                                 benchmarks.push_str(&format!(
-                                    "Running {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
+                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
                                     elapsed, nesting_depth, alteration_depth, dependent_alteration_depth)
                                 );
                                 println!(
-                                    "Running {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}",
+                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth);
+
+                                let now = std::time::Instant::now();
+                                let (_, _) = execute_improved(f_improved, ltl_improved);
+                                let elapsed = now.elapsed();
+                                benchmarks.push_str(&format!(
+                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth)
+                                );
+                                println!(
+                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
                                     elapsed, nesting_depth, alteration_depth, dependent_alteration_depth);
                             }
                         }
@@ -110,16 +127,6 @@ fn run_folder(args: &Args, benchmarks: &mut String) {
                 }
             }
         }
-    }
-}
-
-fn run_and_print(f: Formula, ltl: Ltl, improved: bool, test_state: i64, statistics:bool) {
-    if improved {
-        let (result_set, iterations) = execute_improved(f, ltl);
-        print_set(result_set, iterations, test_state, statistics);
-    } else {
-        let (result_set, iterations) = execute(f, ltl);
-        print_set(result_set, iterations, test_state, statistics);
     }
 }
 
