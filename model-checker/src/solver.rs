@@ -216,7 +216,8 @@ fn find_open_variables(node: &Node) -> (HashMap<String, HashSet<String>>, HashSe
     let mut variables_sub_map: HashMap<String,HashSet<String>> = HashMap::new();
     let mut variables_open_set: HashSet<String> = HashSet::new();
     let mut variables_open_map: HashMap<String,HashSet<String>> = HashMap::new();
-    find_variables(node, &mut variables_mu, &mut variables_nu, &mut variables_sub_found_map, &mut variables_sub_map);
+    let mut variables_visited: HashSet<String> = HashSet::new();
+    find_variables(node, &mut variables_mu, &mut variables_nu, &mut variables_sub_found_map, &mut variables_sub_map, &mut variables_visited);
     for (key, value) in variables_sub_found_map {
         let temp_set = variables_sub_map.get(&key).unwrap().clone();
         if (value).difference(&temp_set).map(|x| x.to_string()).collect::<HashSet<String>>().len() > 0 {
@@ -235,17 +236,22 @@ fn find_open_variables(node: &Node) -> (HashMap<String, HashSet<String>>, HashSe
     (variables_open_map, variables_nu, variables_mu)
 }
 
+
 fn find_variables(node: &Node, variables_mu: &mut HashSet<String>, variables_nu: &mut HashSet<String>, 
-    variables_sub_found_map: &mut HashMap<String,HashSet<String>>, variables_sub_map: &mut HashMap<String,HashSet<String>>) {
+    variables_sub_found_map: &mut HashMap<String,HashSet<String>>, variables_sub_map: &mut HashMap<String,HashSet<String>>, variables_visited: &mut HashSet<String>) {
     match node {
         Node::Variable(var) => {
-            for (_, var_set) in variables_sub_found_map {
+            // for (_, var_set) in variables_sub_found_map {
+            //     (*var_set).insert(var.clone());
+            // }
+            for variable in & *variables_visited {
+                let var_set = variables_sub_found_map.get_mut(variable).unwrap();
                 (*var_set).insert(var.clone());
             }
         }
         Node::BinaryExpr { lhs, rhs, .. } => {
-            find_variables(lhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map);
-            find_variables(rhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map);
+            find_variables(lhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map, &mut variables_visited.clone());
+            find_variables(rhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map, &mut variables_visited.clone());
         }
         Node::FixPointExpr { op, variable, rhs , surrounding_binder: _} => {
             if *op == Operator::GreatestFixpoint {
@@ -253,12 +259,14 @@ fn find_variables(node: &Node, variables_mu: &mut HashSet<String>, variables_nu:
             } else if *op == Operator::LeastFixpoint {
                 variables_mu.insert(variable.clone());
             }
+            (*variables_visited).insert(variable.clone());
             (*variables_sub_found_map).insert(variable.clone(), HashSet::new());
             (*variables_sub_map).insert(variable.clone(), HashSet::new());
-            for (_, var_set) in &mut *variables_sub_map {
+            for var in & *variables_visited {
+                let var_set = variables_sub_map.get_mut(var).unwrap();
                 (*var_set).insert(variable.clone());
             }
-            find_variables(rhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map);
+            find_variables(rhs, variables_mu, variables_nu, variables_sub_found_map, variables_sub_map, variables_visited);
         }
         Node::UnaryExpr { .. } | Node::Action(_) => {}
     }
