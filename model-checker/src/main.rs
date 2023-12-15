@@ -100,26 +100,26 @@ fn run_folder(args: &Args, benchmarks: &mut String) {
                                 let f_naive = read_mcf_file(mcf_entry.path().to_path_buf(), args.debug);
                                 let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f_naive.root_node);
                                 let now = std::time::Instant::now();
-                                let (_, _) = execute(f_naive, ltl_naive);
+                                let (_, iterations) = execute(f_naive, ltl_naive);
                                 let elapsed = now.elapsed();
                                 benchmarks.push_str(&format!(
-                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
-                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth)
+                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}, {}\r\n",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth, iterations)
                                 );
                                 println!(
-                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}",
-                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth);
+                                    "NAIVE {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}, {}",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth, iterations);
 
                                 let now = std::time::Instant::now();
-                                let (_, _) = execute_improved(f_improved, ltl_improved);
+                                let (_, iterations) = execute_improved(f_improved, ltl_improved);
                                 let elapsed = now.elapsed();
                                 benchmarks.push_str(&format!(
-                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
-                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth)
+                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}, {}\r\n",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth, iterations)
                                 );
                                 println!(
-                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
-                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth);
+                                    "IMPROVED {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}, {}\r\n",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth, iterations);
                             }
                         }
                     }
