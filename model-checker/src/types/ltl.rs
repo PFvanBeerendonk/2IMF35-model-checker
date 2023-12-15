@@ -4,6 +4,7 @@ use std::collections::HashMap;
 // Specify custom type `Ltl`
 // follows `https://www.mcrl2.org/web/user_manual/tools/lts.html`
 
+#[derive(Clone)]
 pub struct Ltl {
     pub first_state: i64,
     pub transitions: HashMap< i64, HashMap< String, HashSet<i64> > >, 

@@ -9,6 +9,8 @@ mod types;
 use solver::{execute, execute_improved, find_formula_statistics};
 use types::ltl::Ltl;
 use types::formula::Formula;
+use std::path::PathBuf;
+use walkdir::WalkDir;
 // END IMPORT
 
 
@@ -19,12 +21,16 @@ use types::formula::Formula;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// The path to the .aut file
-    #[arg(short, long)]
-    aut_file: std::path::PathBuf,
+    #[structopt(short, long, conflicts_with = "folder")]
+    aut_file: Option<PathBuf>,
 
     /// The path to the .mcf file
-    #[arg(short, long)]
-    mcf_file: std::path::PathBuf,
+    #[structopt(short, long, conflicts_with = "folder")]
+    mcf_file: Option<PathBuf>,
+
+    /// The path to the folder containing aut and mcf files
+    #[structopt(short, long)]
+    folder: Option<PathBuf>,
 
     /// Use the improved algorithm, or the regular one
     #[arg(short, long, default_value_t=false)]
@@ -47,27 +53,74 @@ struct Args {
 fn main() {
     let args: Args = Args::parse();
 
-    let f: Formula = read_mcf_file(args.mcf_file, args.debug);
-    let ltl: Ltl = read_aut_file(args.aut_file, args.debug);
 
-    if args.statistics {
-        let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
-        print!("The nesting depth for this formula is: {}\n", nesting_depth);
-        print!("The alteration depth for this formula is: {}\n", alteration_depth);
-        print!("The dependent alteration depth for this formula is: {}\n", dependent_alteration_depth);
+    let mut benchmarks = "".to_string();
+    if args.folder.is_some() {
+        run_folder(&args, &mut benchmarks);
+        fs::write("./benchmarks.txt", benchmarks).expect("Unable to write file");
+    }
+    else if args.mcf_file.is_some() && args.aut_file.is_some() {
+        let f: Formula = read_mcf_file(args.mcf_file.unwrap(), args.debug);
+        let ltl: Ltl = read_aut_file(args.aut_file.unwrap(), args.debug);
+        if args.statistics {
+            let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
+            print!("The nesting depth for this formula is: {}\n", nesting_depth);
+            print!("The alteration depth for this formula is: {}\n", alteration_depth);
+            print!("The dependent alteration depth for this formula is: {}\n", dependent_alteration_depth);
+        }
+
+        run_and_print(f, ltl, args.improved, args.test_state, args.statistics);
+
+        println!("\nTerminated Succesfully");
+    }
+    else {
+        println!("Please specify the required files with --aut-file and --mcf-file");
     }
 
-    // let mut result_set: HashSet<i64> = HashSet::new();
-    if args.improved {
+}
+
+fn run_folder(args: &Args, benchmarks: &mut String) {
+    if let Some(folder) = &args.folder {
+        for entry in WalkDir::new(folder).into_iter().filter_map(|e| e.ok()) {
+            if let Some(aut_file_name) = entry.file_name().to_str() {
+                if aut_file_name.ends_with(".aut") {
+                    let original_ltl = read_aut_file(entry.path().to_path_buf(), args.debug);
+                    for mcf_entry in WalkDir::new(folder).into_iter().filter_map(|e| e.ok()) {
+                        let ltl = original_ltl.clone();
+                        if let Some(mcf_file_name) = mcf_entry.file_name().to_str() {
+                            if mcf_file_name.ends_with(".mcf") {
+                                let f = read_mcf_file(mcf_entry.path().to_path_buf(), args.debug);
+                                let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
+                                let now = std::time::Instant::now();
+                                let elapsed: std::time::Duration;
+                                run_and_print(f, ltl, args.improved, args.test_state, args.statistics);
+                                elapsed = now.elapsed();
+                                
+                                benchmarks.push_str(&format!(
+                                    "Running {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}\r\n",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth)
+                                );
+                                println!(
+                                    "Running {mcf_file_name} on {aut_file_name} took {:.2?}. Statistics: {}, {}, {}",
+                                    elapsed, nesting_depth, alteration_depth, dependent_alteration_depth);
+                            }
+                        }
+                    }
+                    println!("");
+                }
+            }
+        }
+    }
+}
+
+fn run_and_print(f: Formula, ltl: Ltl, improved: bool, test_state: i64, statistics:bool) {
+    if improved {
         let (result_set, iterations) = execute_improved(f, ltl);
-        print_set(result_set, iterations, args.test_state, args.statistics);
+        print_set(result_set, iterations, test_state, statistics);
     } else {
         let (result_set, iterations) = execute(f, ltl);
-        print_set(result_set, iterations, args.test_state, args.statistics);
+        print_set(result_set, iterations, test_state, statistics);
     }
-
-    println!("\nTerminated Succesfully");
-
 }
 
 fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64, statistics:bool) {
