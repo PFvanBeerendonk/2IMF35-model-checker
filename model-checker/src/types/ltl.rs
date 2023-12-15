@@ -40,7 +40,7 @@ impl Ltl{
     /**
      * add an edge
      */
-    pub fn add_transition(&mut self, start_state: i64, label: &str, end_state: i64) -> &mut Self {
+    pub fn add_transition(&mut self, start_state: i64, label: &str, end_state: i64, debug: bool) -> &mut Self {
         if start_state < 0 || start_state >= self.nr_of_states {
             panic!("start_state '{}' not correct", start_state)
         }
@@ -48,7 +48,9 @@ impl Ltl{
             panic!("end_state '{}' not correct", end_state)
         }
 
-        println!("adding line ({},{},{})", start_state, label, end_state);
+        if debug {
+            println!("adding line ({},{},{})", start_state, label, end_state);
+        }
         
         let mut transition_dict = self.transitions.clone();
         if transition_dict.contains_key(&start_state) {

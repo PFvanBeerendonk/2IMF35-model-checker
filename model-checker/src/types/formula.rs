@@ -328,8 +328,8 @@ pub fn print_ast(node: &Node, indent: usize) -> String {
 }
 
 impl Formula {
-    pub fn new(input_formula: String) -> Self {
-        println!("Creating new formula");
+    pub fn new(input_formula: String, debug: bool) -> Self {
+        if debug { println!("Creating new formula") }
         
         // format the string
         let mut formula = input_formula
@@ -339,10 +339,10 @@ impl Formula {
             .join("\n");
         formula.retain(|c| (!c.is_whitespace() && c != '\n'));
 
-        println!("{}", formula);
+        if debug { println!("{}", formula) }
 
         let parsed_formula = parse_logic(&formula, Operator::None);
-        println!("{}", print_ast(&parsed_formula, 0));
+        if debug { println!("{}", print_ast(&parsed_formula, 0)) }
     
 
         return Self{

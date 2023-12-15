@@ -30,6 +30,11 @@ struct Args {
     #[arg(short, long, default_value_t=false)]
     improved: bool,
 
+    /// Print intermediate output
+    #[arg(short, long, default_value_t=false)]
+    debug: bool,
+
+    /// Test if state `test_state` is in the output
     #[arg(short, long, default_value_t=-1)]
     test_state: i64,
 }
@@ -38,8 +43,8 @@ struct Args {
 fn main() {
     let args: Args = Args::parse();
 
-    let f: Formula = read_mcf_file(args.mcf_file);
-    let ltl: Ltl = read_aut_file(args.aut_file);
+    let f: Formula = read_mcf_file(args.mcf_file, args.debug);
+    let ltl: Ltl = read_aut_file(args.aut_file, args.debug);
 
     // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
@@ -49,7 +54,6 @@ fn main() {
         let (result_set, iterations) = execute(f, ltl);
         print_set(result_set, iterations, args.test_state);
     }
-    
 
     println!("\nTerminated Succesfully");
 
@@ -75,7 +79,7 @@ fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64) {
 /**
  * Read .aut file and convert to DataType
  */
-fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
+fn read_aut_file(file_path: std::path::PathBuf, debug: bool) -> Ltl {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -122,7 +126,8 @@ fn read_aut_file(file_path: std::path::PathBuf) -> Ltl {
         ltl.add_transition(
             to_int64(nums[0]), 
             label, 
-            to_int64(nums[2])
+            to_int64(nums[2]),
+            debug
         );
     }
 
@@ -136,7 +141,7 @@ fn to_int64(f: &str) -> i64 {
 /**
  * Read .mcf file and convert to DataType
  */
-fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
+fn read_mcf_file(file_path: std::path::PathBuf, debug: bool) -> Formula {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -149,6 +154,6 @@ fn read_mcf_file(file_path: std::path::PathBuf) -> Formula {
     let contents: String = fs::read_to_string(file_path)
         .expect("Should have been able to read the file");
 
-    let f: Formula = Formula::new(contents);
+    let f: Formula = Formula::new(contents, debug);
     return f; 
 }
