@@ -3,6 +3,7 @@ use crate::types::formula::Formula;
 use crate::types::formula::Operator;
 use crate::types::formula::Node;
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -209,6 +210,21 @@ fn eval_improved(node: Node, instance:&Ltl, variable_map: &mut HashMap<String,Ha
     }
 }
 
+fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, 
+    variables_open_map: &HashMap<String, HashSet<String>>, iterations: &mut i64) -> HashSet<i64> {
+    // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
+    let mut x_prime: HashSet<i64> = HashSet::from([1]); 
+    let mut a = variable_map.get(&string.clone()).unwrap().clone();
+    while x_prime != a {
+        x_prime = a.clone();
+        let temp = eval_improved(g.clone(), instance, variable_map, variables_open_map, iterations);
+        (*variable_map).insert(string.clone(), temp);
+        a = variable_map.get(&string.clone()).unwrap().clone();
+        *iterations += 1;
+    }
+    return variable_map.get(&string.clone()).unwrap().clone();
+}
+
 fn find_open_variables(node: &Node) -> (HashMap<String, HashSet<String>>, HashSet<String>, HashSet<String>) {
     let mut variables_mu: HashSet<String> = HashSet::new();
     let mut variables_nu: HashSet<String> = HashSet::new();
@@ -272,19 +288,71 @@ fn find_variables(node: &Node, variables_mu: &mut HashSet<String>, variables_nu:
     }
 }
 
-fn calculate_fixpoint_improved(string: String, g: Node, instance:&Ltl, variable_map: &mut HashMap<String,HashSet<i64>>, 
-    variables_open_map: &HashMap<String, HashSet<String>>, iterations: &mut i64) -> HashSet<i64> {
-    // Set this to something that is both not the full set and the empty set, to make sure we do not quit immediately:
-    let mut x_prime: HashSet<i64> = HashSet::from([1]); 
-    let mut a = variable_map.get(&string.clone()).unwrap().clone();
-    while x_prime != a {
-        x_prime = a.clone();
-        let temp = eval_improved(g.clone(), instance, variable_map, variables_open_map, iterations);
-        (*variable_map).insert(string.clone(), temp);
-        a = variable_map.get(&string.clone()).unwrap().clone();
-        *iterations += 1;
+fn find_formula_depths(node: &Node, nesting_depth: i64, alteration_depth: i64, dependent_alteration_depth: i64, variables_map: &mut HashMap<String, HashSet<String>>) -> (i64, i64, i64) {
+    match node {
+        Node::Variable(_) => {
+            (nesting_depth, alteration_depth, dependent_alteration_depth)
+        }
+        Node::BinaryExpr { op: _, lhs, rhs } => {
+            let (nesting_depth_lhs, alteration_depth_lhs, dependent_alteration_depth_lhs) = find_formula_depths(lhs, nesting_depth, alteration_depth, dependent_alteration_depth, variables_map);
+            let (nesting_depth_rhs, alteration_depth_rhs, dependent_alteration_depth_rhs) = find_formula_depths(rhs, nesting_depth, alteration_depth, dependent_alteration_depth, variables_map);
+            let nesting_depth = max(nesting_depth_lhs, nesting_depth_rhs);
+            let alteration_depth = max(alteration_depth_lhs, alteration_depth_rhs);
+            let dependent_alteration_depth = max(dependent_alteration_depth_lhs, dependent_alteration_depth_rhs);
+            (nesting_depth, alteration_depth, dependent_alteration_depth)
+        }
+        Node::FixPointExpr { op, variable, rhs, surrounding_binder } => {
+            let (nesting_depth_rhs, alteration_depth_rhs, dependent_alteration_depth_rhs) = find_formula_depths(rhs, nesting_depth, alteration_depth, dependent_alteration_depth, variables_map);
+            if surrounding_binder == op {
+                (nesting_depth_rhs + 1, alteration_depth_rhs, dependent_alteration_depth_rhs)
+            } else {
+                if ((*variables_map).get(&variable.clone()).unwrap()).contains(&variable.clone()) {
+                    (nesting_depth_rhs + 1, alteration_depth_rhs + 1, dependent_alteration_depth_rhs + 1)
+                } else {
+                    (nesting_depth_rhs + 1, alteration_depth_rhs + 1, dependent_alteration_depth_rhs)
+                }
+            } 
+        }
+        Node::UnaryExpr { op: _ } => {
+            (nesting_depth, alteration_depth, dependent_alteration_depth)
+        }
+        Node::Action(_) => {
+            (nesting_depth, alteration_depth, dependent_alteration_depth)
+        }
     }
-    return variable_map.get(&string.clone()).unwrap().clone();
 }
 
+fn find_visited_variables(node: &Node, variables_map: &mut HashMap<String, HashSet<String>>, visited_variables: &mut HashSet<String>) {
+    match node {
+        Node::Variable(variable) => {
+            for var in & *visited_variables {
+                let var_set = variables_map.get_mut(var).unwrap();
+                (*var_set).insert(variable.clone());
+            }
+        }
+        Node::BinaryExpr { op: _, lhs, rhs } => {
+            find_visited_variables(lhs, variables_map, &mut visited_variables.clone());
+            find_visited_variables(rhs, variables_map, &mut visited_variables.clone());
+        }
+        Node::FixPointExpr { op: _, variable, rhs, surrounding_binder: _ } => {
+            (*variables_map).insert(variable.clone(), HashSet::new());
+            (*visited_variables).insert(variable.clone());
+            find_visited_variables(rhs, variables_map, visited_variables);
+        }
+        Node::UnaryExpr { op: _} |  Node::Action(_) => {
+        }
+    }
+}
 
+pub fn find_formula_statistics(node: &Node) -> (i64, i64, i64) {
+    let mut variables_map: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut visited_variables: HashSet<String> = HashSet::new();
+    find_visited_variables(node, &mut variables_map, &mut visited_variables);
+    find_formula_depths(node, 0, 0, 0, &mut variables_map)
+}
+
+fn print_map(variables_map: HashMap<String, HashSet<String>>) {
+    for (key, value) in variables_map {
+        println!("{}: {:?}", key, value);
+    }
+}

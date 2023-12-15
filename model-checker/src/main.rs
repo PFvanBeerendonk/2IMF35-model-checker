@@ -6,7 +6,7 @@ use std::collections::HashSet;
 mod solver;
 mod types;
 
-use solver::{execute, execute_improved};
+use solver::{execute, execute_improved, find_formula_statistics};
 use types::ltl::Ltl;
 use types::formula::Formula;
 // END IMPORT
@@ -34,6 +34,10 @@ struct Args {
     #[arg(short, long, default_value_t=false)]
     debug: bool,
 
+    /// Print statistics
+    #[arg(short, long, default_value_t=false)]
+    statistics: bool,
+
     /// Test if state `test_state` is in the output
     #[arg(short, long, default_value_t=-1)]
     test_state: i64,
@@ -46,20 +50,27 @@ fn main() {
     let f: Formula = read_mcf_file(args.mcf_file, args.debug);
     let ltl: Ltl = read_aut_file(args.aut_file, args.debug);
 
+    if args.statistics {
+        let (nesting_depth, alteration_depth, dependent_alteration_depth) = find_formula_statistics(&f.root_node);
+        print!("The nesting depth for this formula is: {}\n", nesting_depth);
+        print!("The alteration depth for this formula is: {}\n", alteration_depth);
+        print!("The dependent alteration depth for this formula is: {}\n", dependent_alteration_depth);
+    }
+
     // let mut result_set: HashSet<i64> = HashSet::new();
     if args.improved {
         let (result_set, iterations) = execute_improved(f, ltl);
-        print_set(result_set, iterations, args.test_state);
+        print_set(result_set, iterations, args.test_state, args.statistics);
     } else {
         let (result_set, iterations) = execute(f, ltl);
-        print_set(result_set, iterations, args.test_state);
+        print_set(result_set, iterations, args.test_state, args.statistics);
     }
 
     println!("\nTerminated Succesfully");
 
 }
 
-fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64) {
+fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64, statistics:bool) {
     print!("Resulting set: ");
     print!("{{");
     for (i, el) in set.iter().enumerate()  {
@@ -72,7 +83,9 @@ fn print_set(set: HashSet<i64>, iterations: i64, test_state: i64) {
     if test_state != -1 {
         println!("The state {} is in the resulting set: {}", test_state, set.contains(&test_state));
     }
-    print!("Total number of fixpoint iterations: {}\n", iterations);
+    if statistics {
+        println!("Total number of fixpoint iterations: {}", iterations);
+    }
 }
 
 

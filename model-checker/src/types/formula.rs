@@ -33,8 +33,8 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             let (first_part, operator, second_part) = get_junctions(expression);
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(first_part, Operator::None)),
-                rhs: Box::new(parse_logic(second_part, Operator::None))
+                lhs: Box::new(parse_logic(first_part, binder.clone())),
+                rhs: Box::new(parse_logic(second_part, binder.clone()))
             };
         } else if expression.starts_with("mu") {
             let rhs_idx = expression.find('.')
@@ -60,14 +60,14 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             return Node::BinaryExpr {
                 op: Operator::BoxModality,
                 lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(parse_logic(variable, Operator::None)),
+                rhs: Box::new(parse_logic(variable, binder)),
             };
         } else if expression.starts_with("<") && expression.contains(">") {
             (action, variable) = extract_bracketed_strings(expression, "diamond");
             return Node::BinaryExpr {
                 op: Operator::DiamondModality,
                 lhs: Box::new(Node::Action((*action).to_string())),
-                rhs: Box::new(parse_logic(variable, Operator::None)),
+                rhs: Box::new(parse_logic(variable, binder)),
             };
         } else if expression == "true" {
             return Node::UnaryExpr { op: Operator::SimpleTrue }
@@ -82,21 +82,21 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
         if and_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Conjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expr[..and_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expr[and_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expr[..and_index].to_string()), binder.clone())),
+                rhs: Box::new(parse_logic(&remove_brackets(expr[and_index+2..].to_string()), binder.clone()))
             }
         } else if or_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Disjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expr[..or_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expr[or_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expr[..or_index].to_string()), binder.clone())),
+                rhs: Box::new(parse_logic(&remove_brackets(expr[or_index+2..].to_string()), binder.clone()))
             }
         }
         let (first_part, operator, second_part) = get_junctions(expr);
         return Node::BinaryExpr {
             op: operator,
-            lhs: Box::new(parse_logic(first_part, Operator::None)),
-            rhs: Box::new(parse_logic(second_part, Operator::None))
+            lhs: Box::new(parse_logic(first_part, binder.clone())),
+            rhs: Box::new(parse_logic(second_part, binder.clone()))
         };
     } else {
         let and_index = check_junction_before_paren(expression, "&&");
@@ -105,15 +105,15 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
             let operator = Operator::Conjunction;
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), binder.clone())),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), binder.clone()))
             }
         } else if or_index != usize::MAX {
             let operator = Operator::Disjunction;
             return Node::BinaryExpr {
                 op: operator,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), binder.clone())),
+                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string()), binder.clone()))
             }
         }
         if let Some(extracted) = extract_text_before_brackets(expression) {
@@ -123,14 +123,14 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
                 return Node::BinaryExpr {
                     op: Operator::BoxModality,
                     lhs: Box::new(Node::Action((*action).to_string())),
-                    rhs: Box::new(parse_logic(variable, Operator::None)),
+                    rhs: Box::new(parse_logic(variable, binder)),
                 };
             } else if extracted.starts_with("<") {
                 let (action, variable) = extract_bracketed_strings(expression, "diamond");
                 return Node::BinaryExpr {
                     op: Operator::DiamondModality,
                     lhs: Box::new(Node::Action((*action).to_string())),
-                    rhs: Box::new(parse_logic(variable, Operator::None)),
+                    rhs: Box::new(parse_logic(variable, binder)),
                 };
                 // lhs = Node::Variable(extracted[0..3].to_string());
             } else if extracted.starts_with("mu") {
