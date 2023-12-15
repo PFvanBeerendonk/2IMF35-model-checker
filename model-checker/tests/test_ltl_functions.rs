@@ -52,12 +52,12 @@ mod test_insert_transition {
             (3, HashMap::new()),
         ]);
 
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(0, "a", 1, false); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0, false); // 0 -a-> 0
         assert_eq!(simple_ltl.transitions, test_map );
 
         // Adding same transition twice does not change the data
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
+        simple_ltl.add_transition(0, "a", 0, false); // 0 -a-> 0
         assert_eq!(simple_ltl.transitions, test_map );
     }
 
@@ -69,14 +69,14 @@ mod test_insert_transition {
             2,
             4,
         );
-        simple_ltl.add_transition(4, "a", 1); // 4 -a-> 1, but 4 is too big
+        simple_ltl.add_transition(4, "a", 1, false); // 4 -a-> 1, but 4 is too big
     }
     
     #[test]
     #[should_panic(expected = "end_state '3' not correct")]
     fn test_panic_end_state_too_big() {
         let mut simple_ltl: Ltl = Ltl::new(0, 2, 3);
-        simple_ltl.add_transition(1, "a", 3); // 1 -a-> 3, but 3 is too big
+        simple_ltl.add_transition(1, "a", 3, false); // 1 -a-> 3, but 3 is too big
     }
 }
 
@@ -93,9 +93,9 @@ mod test_get_box_modality {
             3,
             3,
         );
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
-        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
+        simple_ltl.add_transition(0, "a", 1, false); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0, false); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2, false); // 1 -a-> 2
         
         let out_states = HashSet::from([1]);
 
@@ -114,11 +114,16 @@ mod test_get_box_modality {
             3,
             5,
         );
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
-        simple_ltl.add_transition(1, "a", 1); // 1 -a-> 1
-        simple_ltl.add_transition(2, "a", 1); // 2 -a-> 1
-        simple_ltl.add_transition(3, "b", 4); // 3 -b-> 4
+        let transitions: [(i64, &str, i64); 5] = [
+            (0, "a", 1),
+            (0, "a", 0),
+            (1, "a", 1),
+            (2, "a", 1),
+            (3, "b", 4),
+        ];
+        for (s, a, t) in transitions.iter() {
+            simple_ltl.add_transition(s.clone(), a, t.clone(), false);
+        }
         
         let out_states = HashSet::from([1, 2]);
 
@@ -139,10 +144,16 @@ mod test_get_box_modality {
             3,
             4,
         );
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
-        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
-        simple_ltl.add_transition(2, "b", 3); // 2 -b-> 3
+        
+        let transitions: [(i64, &str, i64); 4] = [
+            (0, "a", 1),
+            (0, "a", 0),
+            (1, "a", 2),
+            (2, "b", 3),
+        ];
+        for (s, a, t) in transitions.iter() {
+            simple_ltl.add_transition(s.clone(), a, t.clone(), false);
+        }
         
         let out_states = HashSet::from([]);
 
@@ -178,7 +189,7 @@ mod test_get_box_modality {
             (7, "b", 1)
         ];
         for (s, a, t) in transitions.iter() {
-            simple_ltl.add_transition(s.clone(), a, t.clone());
+            simple_ltl.add_transition(s.clone(), a, t.clone(), false);
         }
         
         let out_states = HashSet::from([]);
@@ -203,9 +214,9 @@ mod test_get_diamond_modality {
             3,
             3,
         );
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
-        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
+        simple_ltl.add_transition(0, "a", 1, false); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0, false); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2, false); // 1 -a-> 2
         
         let out_states = HashSet::from([1]);
 
@@ -222,10 +233,10 @@ mod test_get_diamond_modality {
             3,
             4,
         );
-        simple_ltl.add_transition(0, "a", 1); // 0 -a-> 1
-        simple_ltl.add_transition(0, "a", 0); // 0 -a-> 0
-        simple_ltl.add_transition(1, "a", 2); // 1 -a-> 2
-        simple_ltl.add_transition(2, "b", 3); // 1 -a-> 2
+        simple_ltl.add_transition(0, "a", 1, false); // 0 -a-> 1
+        simple_ltl.add_transition(0, "a", 0, false); // 0 -a-> 0
+        simple_ltl.add_transition(1, "a", 2, false); // 1 -a-> 2
+        simple_ltl.add_transition(2, "b", 3, false); // 1 -a-> 2
         
         let out_states = HashSet::from([]);
 
