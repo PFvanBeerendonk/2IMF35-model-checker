@@ -76,22 +76,23 @@ pub fn parse_logic(expression: &str, binder:Operator) -> Node {
         }
         return Node::Variable(expression.to_string());
     } else if expression.starts_with("(")  {
-        let and_index = check_junction_after_paren(expression, "&&");
-        let or_index = check_junction_after_paren(expression, "||");
+        let expr = &check_redundant_paren(expression);
+        let and_index = check_junction_after_paren(expr, "&&");
+        let or_index = check_junction_after_paren(expr, "||");
         if and_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Conjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..and_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[and_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expr[..and_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expr[and_index+2..].to_string()), Operator::None))
             }
         } else if or_index != usize::MAX {
             return Node::BinaryExpr {
                 op: Operator::Disjunction,
-                lhs: Box::new(parse_logic(&remove_brackets(expression[..or_index].to_string()), Operator::None)),
-                rhs: Box::new(parse_logic(&remove_brackets(expression[or_index+2..].to_string()), Operator::None))
+                lhs: Box::new(parse_logic(&remove_brackets(expr[..or_index].to_string()), Operator::None)),
+                rhs: Box::new(parse_logic(&remove_brackets(expr[or_index+2..].to_string()), Operator::None))
             }
         }
-        let (first_part, operator, second_part) = get_junctions(expression);
+        let (first_part, operator, second_part) = get_junctions(expr);
         return Node::BinaryExpr {
             op: operator,
             lhs: Box::new(parse_logic(first_part, Operator::None)),
@@ -165,6 +166,36 @@ fn extract_text_before_brackets(text: &str) -> Option<&str> {
     let before_brackets = text.splitn(2, '(').next()?;
 
     Some(before_brackets)
+}
+
+fn check_redundant_paren(s: &str) -> String {
+    let input_chars: Vec<char> = s.chars().collect();
+
+    // Check if the string has outer parentheses
+    if input_chars.len() >= 2 && input_chars[0] == '(' && input_chars[input_chars.len() - 1] == ')' {
+        let mut count = 0;
+        let mut valid = true;
+
+        // Count parentheses to ensure correctness
+        for &ch in input_chars.iter().skip(1).take(input_chars.len() - 2) {
+            if ch == '(' {
+                count += 1;
+            } else if ch == ')' {
+                if count == 0 {
+                    valid = false;
+                    break;
+                }
+                count -= 1;
+            }
+        }
+
+        if valid && count == 0 {
+            return input_chars[1..input_chars.len() - 1].iter().collect();
+        }
+    }
+
+    s.to_string() // Return the original string if parentheses are not redundant
+
 }
 
 fn get_strings_between_brackets(s: &str) -> Option<&str> {
