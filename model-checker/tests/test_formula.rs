@@ -56,7 +56,7 @@ mod formula_tests {
 
     #[test]
     fn test_files_in_tests_directory() {
-        let tests_directory = "./../input/part1-tests/";
+        let tests_directory = "./input/part1-tests/";
 
         if let Err(err) = test_files_in_directory(tests_directory) {
             // Fail the test in case of an error
