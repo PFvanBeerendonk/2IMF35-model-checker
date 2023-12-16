@@ -1,0 +1,6 @@
+% should return all states
+
+mu X.(
+    (<ask>true || nu Z.( [wisdom]false && <true> Z )) || 
+    [true] Y
+)
