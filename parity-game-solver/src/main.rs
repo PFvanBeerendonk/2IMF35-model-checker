@@ -1,5 +1,6 @@
 use std::fs;
 use clap::Parser;
+use core::cmp::max;
 
 // END IMPORT
 
@@ -65,19 +66,32 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
         panic!(".mg file should contain `parity ` as first line, file started with {}", des);
     }
 
-    let identifier: &str = last.split(";").collect::<Vec<&str>>()[0];
+    // DOCS: https://www.win.tue.nl/~timw/downloads/amc/pgsolver.pdf (page 35, chapter 3.5)
+    //   "It should be the maximal identifier of a node in the game"
+    let identifier: i64 = to_int64(last.split(";").collect::<Vec<&str>>()[0]);
 
     // TODO: init
-    print!("{}", identifier);
+    println!("{}\n", identifier);
 
 
     // start decoding the lines
     // e.g.     0 0 0 1 "[X.]  |= 0";
     //          0 0 1 6453,20561,20562,30562;
-
+    
+    let mut d: i64 = 0;
     for part in lines.skip(1) {
-        print!("{}", part);
+        let priority = to_int64(part.split(" ").collect::<Vec<&str>>()[1]);
+
+        // calculate the maximum priority (needed for progressMeasure)
+        d = max(d, priority);
+        println!("{}", part);
     }
 
+    println!("{}", d);
+
     return String::new()
+}
+
+fn to_int64(f: &str) -> i64 {
+    return f.parse::<i64>().unwrap()
 }
