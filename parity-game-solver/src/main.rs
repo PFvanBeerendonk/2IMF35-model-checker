@@ -86,6 +86,8 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
         d = max(d, priority);
         println!("{}", part);
     }
+    // See lecture6, slide 12 ==> d = 1 + max{p(v) | v \in V}
+    d += 1;
 
     println!("{}", d);
 
