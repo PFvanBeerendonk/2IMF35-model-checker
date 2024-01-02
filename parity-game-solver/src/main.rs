@@ -5,8 +5,8 @@ use clap::Parser;
 
 
 /// definition of ARGS 
-// e.g.: `cargo run -- --aut-file ../input/part2-1/dining_2.aut --mcf-file ../input/part2-1/invariantly_inevitably_eat.mcf --improved`
-//       `main.exe --aut-file ../input/part2-1/dining_2.aut --mcf-file ../input/part2-1/invariantly_inevitably_eat.mcf -i`
+// e.g.: `cargo run -- -g input/dining_games/dining_2.invariantly_inevitably_eat.gm`
+//       `main.exe --gm-file input/dining_games/dining_2.invariantly_inevitably_eat.gm`
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -14,7 +14,10 @@ struct Args {
     #[arg(short, long)]
     gm_file: std::path::PathBuf,
 
-    
+    /// Use the "random order" lifting strategy. Otherwise "input order" is used
+    #[arg(short, long, default_value_t=false)]
+    random_lifting: bool,
+
 
 
     /// Print debug data
@@ -41,5 +44,40 @@ fn main() {
 
 
 fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
+    if !file_path.exists() {
+        panic!("File {:?} does not exist", file_path);
+    }
+    if "gm" != file_path.extension().unwrap() {
+        panic!("File {:?} should have been of type .gm", file_path);
+    }
+
+    let contents: String = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    let mut lines = contents.lines();
+
+    // Initialize header, e.g. "parity 118206;"
+    let first_line = lines.nth(0)
+        .expect("File cannot be empty");
+
+    let (des, last) = first_line.split_at(7);
+    if "parity " != des {
+        panic!(".mg file should contain `parity ` as first line, file started with {}", des);
+    }
+
+    let identifier: &str = last.split(";").collect::<Vec<&str>>()[0];
+
+    // TODO: init
+    print!("{}", identifier);
+
+
+    // start decoding the lines
+    // e.g.     0 0 0 1 "[X.]  |= 0";
+    //          0 0 1 6453,20561,20562,30562;
+
+    for part in lines.skip(1) {
+        print!("{}", part);
+    }
+
     return String::new()
 }
