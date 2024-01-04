@@ -2,6 +2,9 @@ use std::fs;
 use clap::Parser;
 use core::cmp::max;
 
+mod types;
+
+use types::progress_measure::ProgressMeasure;
 // END IMPORT
 
 
@@ -68,10 +71,10 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
 
     // DOCS: https://www.win.tue.nl/~timw/downloads/amc/pgsolver.pdf (page 35, chapter 3.5)
     //   "It should be the maximal identifier of a node in the game"
-    let identifier: i64 = to_int64(last.split(";").collect::<Vec<&str>>()[0]);
+    let max_identifier: i64 = to_int64(last.split(";").collect::<Vec<&str>>()[0]);
 
-    // TODO: init
-    println!("{}\n", identifier);
+    // TODO: init ProgressMeasure
+    println!("{}\n", max_identifier);
 
 
     // start decoding the lines
@@ -80,14 +83,24 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
     
     let mut d: i64 = 0;
     for part in lines.skip(1) {
-        let priority = to_int64(part.split(" ").collect::<Vec<&str>>()[1]);
+        let part_split = part.split(" ").collect::<Vec<&str>>();
+
+        let identifier = to_int64(part_split[0]);
+        let priority = to_int64(part_split[1]);
+        let owner = to_int64(part_split[2]);  // 0 or 1
+        let successors = to_int64(part_split[3]);
+
+        // optional name
+        let name = to_int64(part_split[4]);
 
         // calculate the maximum priority (needed for progressMeasure)
         d = max(d, priority);
-        println!("{}", part);
+
+        
     }
     // See lecture6, slide 12 ==> d = 1 + max{p(v) | v \in V}
     d += 1;
+    let pm = ProgressMeasure::new(max_identifier, d);
 
     println!("{}", d);
 

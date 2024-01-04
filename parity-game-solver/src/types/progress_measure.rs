@@ -26,9 +26,7 @@ impl ProgressMeasure{
     pub fn new(id: i64, d: i64) -> Self{
         // note that all identifiers of vertices are between 0 and id (inclusive)
 
-        let max_prio: usize = d as usize;
-
-        let mut data = (0..id).map(|_| vec![0; max_prio]).collect::<Vec<Vec<i64>>>();
+        let mut data = (0..id).map(|_| vec![0; d as usize]).collect::<Vec<Vec<i64>>>();
 
         return Self{
             data: data
