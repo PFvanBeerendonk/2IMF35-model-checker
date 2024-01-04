@@ -1,13 +1,10 @@
-use std::collections::HashSet;
-
 // Specify custom type `ProgressMeasure` to hide implementation details
 pub struct ProgressMeasure {
-    pub data: Vec<Vec<i64>>,
+    pub data: Vec<
+        Option<Vec<i64>>
+    >,
 }
-
-// TODO: inner datastruct Vec<i64> should becomde Vec<i64> OPTION T where T is a special constant datastruct
-
-
+// Here Option will turn into NULL or Vec<i64>, in case of NULL we will have T
 
 /* NOTE: The ProgressMeasure datatype should be able to do the following things efficiently:
  * - build, store and operate on the progress mater
@@ -26,7 +23,7 @@ impl ProgressMeasure{
     pub fn new(id: i64, d: i64) -> Self{
         // note that all identifiers of vertices are between 0 and id (inclusive)
 
-        let mut data = (0..id).map(|_| vec![0; d as usize]).collect::<Vec<Vec<i64>>>();
+        let mut data = (0..id).map(|_| Some(vec![0; d as usize])).collect::<Vec<Option<Vec<i64>>>>();
 
         return Self{
             data: data
@@ -36,7 +33,7 @@ impl ProgressMeasure{
     /**
      * Should set ϱ(v) to new_value
      */
-    pub fn set(&mut self, vertex: i64, new_value: &str) -> &mut Self {
+    pub fn set(self, vertex: i64, new_value: &str) -> Self {
         
         return self
     }

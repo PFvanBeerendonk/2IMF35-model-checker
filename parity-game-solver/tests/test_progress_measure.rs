@@ -10,8 +10,8 @@ mod test_new {
         );
 
         let expected_result = vec![
-            vec![0,0,0,0],
-            vec![0,0,0,0],
+            Some(vec![0,0,0,0]),
+            Some(vec![0,0,0,0]),
         ];
 
         assert_eq!(pm.data, expected_result);
