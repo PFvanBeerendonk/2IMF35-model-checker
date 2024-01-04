@@ -1,10 +1,8 @@
 // Specify custom type `ProgressMeasure` to hide implementation details
 pub struct ProgressMeasure {
-    pub data: Vec<
-        Option<Vec<i64>>
-    >,
+    pub data: Vec<Option<Vec<i64>>>,
 }
-// Here Option will turn into NULL or Vec<i64>, in case of NULL we will have T
+// Here `Option` will turn into NULL or Vec<i64>, in case of NULL we will have T (see lecture 6, slide 6)
 
 /* NOTE: The ProgressMeasure datatype should be able to do the following things efficiently:
  * - build, store and operate on the progress mater

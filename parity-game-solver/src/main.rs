@@ -38,16 +38,20 @@ fn main() {
     // Parse the arguments:
     let args: Args = Args::parse();
 
-    let f: String = read_gm_file(args.gm_file, args.debug);
+    let result = read_gm_file(args.gm_file, args.debug);
+    println!("\n###   Finished Construction   ###\n");
+
+    let pm:ProgressMeasure = result.0;
+    let ltl = result.1;
 
 
 
-    println!("\nTerminated Succesfully");
+    println!("\n###   Terminated Succesfully   ###\n");
 
 }
 
 
-fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
+fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, String) {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -73,25 +77,21 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
     //   "It should be the maximal identifier of a node in the game"
     let max_identifier: i64 = to_int64(last.split(";").collect::<Vec<&str>>()[0]);
 
-    // TODO: init ProgressMeasure
-    println!("{}\n", max_identifier);
-
-
     // start decoding the lines
     // e.g.     0 0 0 1 "[X.]  |= 0";
     //          0 0 1 6453,20561,20562,30562;
-    
     let mut d: i64 = 0;
     for part in lines.skip(1) {
-        let part_split = part.split(" ").collect::<Vec<&str>>();
+        // remove ; and split into parts
+        let part_split = part[0..part.len()-1].split(" ").collect::<Vec<&str>>();
 
-        let identifier = to_int64(part_split[0]);
-        let priority = to_int64(part_split[1]);
-        let owner = to_int64(part_split[2]);  // 0 or 1
-        let successors = to_int64(part_split[3]);
+        let identifier = to_int64(part_split[0]);   // int < max_identifier
+        let priority = to_int64(part_split[1]);     // int
+        let owner = to_int64(part_split[2]);        // 0 or 1
+        let successors = part_split[3];             // int,int,int,...
 
         // optional name
-        let name = to_int64(part_split[4]);
+        let mut name = part_split.get(4);               // string, bound by "", not containing "
 
         // calculate the maximum priority (needed for progressMeasure)
         d = max(d, priority);
@@ -102,9 +102,11 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> String {
     d += 1;
     let pm = ProgressMeasure::new(max_identifier, d);
 
+
+
     println!("{}", d);
 
-    return String::new()
+    return (pm, String::new())
 }
 
 fn to_int64(f: &str) -> i64 {
