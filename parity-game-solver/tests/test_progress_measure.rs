@@ -28,7 +28,7 @@ mod test_prog {
     // v.id = 0 ; w.id = 1 ; d=1+3
     // 
     #[test]
-    fn test_function_prog_prio_lec8_slide17_example1() {
+    fn test_function_prog_lec8_slide17_example1() {
         // Vertex: id, prio, owner, succ
         let v = Vertex::new(
             0, 0, 1, 
@@ -51,7 +51,7 @@ mod test_prog {
     }
 
     #[test]
-    fn test_function_prog_prio_lec8_slide17_example2() {
+    fn test_function_prog_lec8_slide17_example2() {
         // Vertex: id, prio, owner, succ
         let v = Vertex::new(
             0, 1, 1, 
@@ -74,7 +74,7 @@ mod test_prog {
     }
 
     #[test]
-    fn test_function_prog_prio_lec8_slide17_example3() {
+    fn test_function_prog_lec8_slide17_example3() {
         // Vertex: id, prio, owner, succ
         let v = Vertex::new(
             0, 3, 1, 
@@ -94,5 +94,28 @@ mod test_prog {
 
         let result = pm.prog(v, w, d);
         assert_eq!(result, Some(vec![0,2,0,1]));
+    }
+
+    #[test]
+    fn test_function_prog_odd_t() {
+        // Vertex: id, prio, owner, succ
+        let v = Vertex::new(
+            0, 3, 1, 
+            Vec::<i64>::from([]),
+        );
+        let w = Vertex::new(
+            1, 1, 0, 
+            Vec::<i64>::from([]),
+        );
+        let d = 4;
+
+        let mut pm = ProgressMeasure::new(
+            2, // max id
+            3, // max prio
+        );
+        pm.data[1] = None;
+
+        let result = pm.prog(v, w, d);
+        assert_eq!(result, None);
     }
 }
