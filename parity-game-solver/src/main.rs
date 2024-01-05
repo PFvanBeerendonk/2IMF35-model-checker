@@ -98,7 +98,7 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
 
         
     }
-    // See lecture6, slide 12 ==> d = 1 + max{p(v) | v \in V}
+    // See lecture8, slide 12 ==> d = 1 + max{p(v) | v \in V}
     d += 1;
     let pm = ProgressMeasure::new(max_identifier, d);
 
