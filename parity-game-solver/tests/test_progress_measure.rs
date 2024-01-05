@@ -119,3 +119,16 @@ mod test_prog {
         assert_eq!(result, None);
     }
 }
+
+#[cfg(test)]
+mod test_helper_tail_zeros {
+    use parity_game_solver::types::progress_measure::_tail_zeros;
+    
+    #[test]
+    fn test_helper_tail_zeroes() {
+        let v = vec![1,2,3,4,5];
+
+        let result = _tail_zeros(v, 2);
+        assert_eq!(result, vec![1,2,0,0,0]);
+    }
+}

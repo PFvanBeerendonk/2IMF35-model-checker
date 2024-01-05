@@ -66,12 +66,9 @@ impl ProgressMeasure{
             } else {
                 // replace everything beyond index p(v) with 0s
                 let mut ew = self.data[w.identifier as usize].clone().unwrap();
+                ew = _tail_zeros(ew, v.priority+1);
 
-                for i in v.priority+1..(ew.len() as i64) {
-                    ew[i as usize] = 0;
-                }
-
-                return Some(ew)
+                return Some(ew);
             }
         } else {
             // check if ϱ(w) = T
@@ -100,11 +97,22 @@ impl ProgressMeasure{
             }
 
             // tail with 0s
-            for i in v.priority+1..(ew.len() as i64) {
-                ew[i as usize] = 0;
-            }
+            ew = _tail_zeros(ew, v.priority+1);
 
             return Some(ew);
         }
     }
+}
+
+/**
+ * Replaces from tail_start to end of vector `v` with value 0
+ */
+#[doc(hidden)] //Not intended for pubilc use, pub added for testing
+pub fn _tail_zeros(mut v:Vec<i64>, tail_start: i64) -> Vec<i64> {
+    for i in tail_start..(v.len() as i64) {
+        v[i as usize] = 0;
+    }
+    return v
+
+    // TODO: check if it is possible to speed this up
 }
