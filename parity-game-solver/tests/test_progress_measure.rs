@@ -22,19 +22,77 @@ mod test_new {
 #[cfg(test)]
 mod test_prog {
     use parity_game_solver::types::progress_measure::ProgressMeasure;
+    use parity_game_solver::types::vertex::Vertex;
     
-
+    // NOTE: use examples from lecture 8, slide 17
+    // v.id = 0 ; w.id = 1 ; d=1+3
+    // 
     #[test]
-    fn test_function_prog() {
-        let pm =  ProgressMeasure::new(
-            2,
-            4,
+    fn test_function_prog_prio_lec8_slide17_example1() {
+        // Vertex: id, prio, owner, succ
+        let v = Vertex::new(
+            0, 0, 1, 
+            Vec::<i64>::from([]),
         );
 
-        let expected_result = Some(vec![0,0,0,0]);
+        let w = Vertex::new(
+            1, 1, 0, 
+            Vec::<i64>::from([]),
+        );
 
-        let result = pm.prog(1,2);
+        let pm = ProgressMeasure::new(
+            2, // max id
+            3, // max prio
+        );
+        pm[1] = Some(vec![0,2,0,0])
 
-        assert_eq!(result, expected_result);
+        let result = pm.prog(v, w);
+        assert_eq!(result, Some(vec![0,0,0,0]));
+    }
+
+    #[test]
+    fn test_function_prog_prio_lec8_slide17_example2() {
+        // Vertex: id, prio, owner, succ
+        let v = Vertex::new(
+            0, 1, 1, 
+            Vec::<i64>::from([]),
+        );
+
+        let w = Vertex::new(
+            1, 1, 0, 
+            Vec::<i64>::from([]),
+        );
+
+        let pm = ProgressMeasure::new(
+            2, // max id
+            3, // max prio
+        );
+        pm[1] = Some(vec![0,2,0,0]) // e(w)
+
+        let result = pm.prog(v, w);
+        assert_eq!(result, None); // T
+    }
+
+    #[test]
+    fn test_function_prog_prio_lec8_slide17_example3() {
+        // Vertex: id, prio, owner, succ
+        let v = Vertex::new(
+            0, 3, 1, 
+            Vec::<i64>::from([]),
+        );
+
+        let w = Vertex::new(
+            1, 1, 0, 
+            Vec::<i64>::from([]),
+        );
+
+        let pm = ProgressMeasure::new(
+            2, // max id
+            3, // max prio
+        );
+        pm[1] = Some(vec![0,2,0,0])
+
+        let result = pm.prog(v, w);
+        assert_eq!(result, Some(vec![0,2,0,1]));
     }
 }

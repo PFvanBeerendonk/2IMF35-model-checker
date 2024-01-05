@@ -5,16 +5,16 @@ mod test_new {
     #[test]
     fn test_get_all_states() {
 
-        let v =  Vertex::new(
-            1,
-            0,
+        let v = Vertex::new(
+            3,
+            2,
             1, 
-            Vec::<i64>::from([1,2]),
+            Vec::<i64>::from([5,7]),
         );
 
-        assert_eq!(v.identifier, 1);
-        assert_eq!(v.priority, 0);
-        assert_eq!(v.owner, 0);
-        assert_eq!(v.successors, Vec::<i64>::from([1,2]));
+        assert_eq!(v.identifier, 3);
+        assert_eq!(v.priority, 2);
+        assert_eq!(v.owner, 1);
+        assert_eq!(v.successors, Vec::<i64>::from([5,7]));
     }
 }

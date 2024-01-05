@@ -1,3 +1,5 @@
+use super::vertex::Vertex;
+
 pub type Measures = Option<Vec<i64>>;
 // In lectures refered to as M^T OR \N^d \union \{T\} (the set of tuples of natural numbers of length d and T)
 // Here `Option` will be NULL or Vec<i64>, we will interpret NULL as T (see lecture 8, slide 6)
@@ -46,13 +48,21 @@ impl ProgressMeasure{
      * Prog (ϱ, v , w ), for v , w ∈ V , is the least m ∈ M⊤, such that:
      * • if p(v ) is even, then m ≥p(v ) ϱ(w )
      * • if p(v ) is odd, then either m >p(v ) ϱ(w ), or, if ϱ(w ) = ⊤, also m = ⊤
+     * 
+     * NOTE that (v,w) \in E
      */
-    pub fn prog(self, v: i64, w: i64) -> Measures {
-        // if (v.priority) {
+    pub fn prog(self, v: Vertex, w: Vertex) -> Measures {
+        if (v.priority.is_even()) {
+            // get least m with m >=_{p(v)} ϱ(w)
+            return None;
 
-        // }
+        } else {
+            if (self.data[w.identifier].is_none()) {
+                
+            }
 
-
-        return None //Some(vec![0; 1 as usize]);
+            // get least m >_{p(v)} ϱ(w) OR e(w) = T then m=T
+            return None;
+        }
     }
 }
