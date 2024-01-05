@@ -34,19 +34,19 @@ mod test_prog {
             0, 0, 1, 
             Vec::<i64>::from([]),
         );
-
         let w = Vertex::new(
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
+        let d = 4;
 
-        let pm = ProgressMeasure::new(
+        let mut pm = ProgressMeasure::new(
             2, // max id
             3, // max prio
         );
-        pm[1] = Some(vec![0,2,0,0])
+        pm.data[1] = Some(vec![0,2,0,0]);
 
-        let result = pm.prog(v, w);
+        let result = pm.prog(v, w, d);
         assert_eq!(result, Some(vec![0,0,0,0]));
     }
 
@@ -57,19 +57,19 @@ mod test_prog {
             0, 1, 1, 
             Vec::<i64>::from([]),
         );
-
         let w = Vertex::new(
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
+        let d = 4;
 
-        let pm = ProgressMeasure::new(
+        let mut pm = ProgressMeasure::new(
             2, // max id
             3, // max prio
         );
-        pm[1] = Some(vec![0,2,0,0]) // e(w)
+        pm.data[1] = Some(vec![0,2,0,0]); // e(w)
 
-        let result = pm.prog(v, w);
+        let result = pm.prog(v, w, d);
         assert_eq!(result, None); // T
     }
 
@@ -80,19 +80,19 @@ mod test_prog {
             0, 3, 1, 
             Vec::<i64>::from([]),
         );
-
         let w = Vertex::new(
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
+        let d = 4;
 
-        let pm = ProgressMeasure::new(
+        let mut pm = ProgressMeasure::new(
             2, // max id
             3, // max prio
         );
-        pm[1] = Some(vec![0,2,0,0])
+        pm.data[1] = Some(vec![0,2,0,0]);
 
-        let result = pm.prog(v, w);
+        let result = pm.prog(v, w, d);
         assert_eq!(result, Some(vec![0,2,0,1]));
     }
 }

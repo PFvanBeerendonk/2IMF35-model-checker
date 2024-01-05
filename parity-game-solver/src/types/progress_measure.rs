@@ -45,23 +45,36 @@ impl ProgressMeasure{
 
 
     /**
+     * Params: Vertex v, w and d: max_priority
+     * 
      * Prog (ϱ, v , w ), for v , w ∈ V , is the least m ∈ M⊤, such that:
      * • if p(v ) is even, then m ≥p(v ) ϱ(w )
      * • if p(v ) is odd, then either m >p(v ) ϱ(w ), or, if ϱ(w ) = ⊤, also m = ⊤
+     * NOTE that >p(v) denotes lexicographical order up to index p(v) with T being largest
      * 
-     * NOTE that (v,w) \in E
+     * Assume that (v,w) \in E
+     * 
+     * @Returns m
      */
-    pub fn prog(self, v: Vertex, w: Vertex) -> Measures {
-        if (v.priority.is_even()) {
+    pub fn prog(self, v: Vertex, w: Vertex, max_priority: i64) -> Measures {
+        // is even
+        if v.priority % 2 == 0 {
             // get least m with m >=_{p(v)} ϱ(w)
-            return None;
-
-        } else {
-            if (self.data[w.identifier].is_none()) {
-                
+            for i in 0..v.priority {
+                println!("{}", i);
             }
 
-            // get least m >_{p(v)} ϱ(w) OR e(w) = T then m=T
+
+
+
+            return None;
+        } else {
+            // check if ϱ(w) = T
+            if self.data[w.identifier as usize].is_none() {
+                return None;
+            }
+
+            // get least m >_{p(v)} ϱ(w)
             return None;
         }
     }
