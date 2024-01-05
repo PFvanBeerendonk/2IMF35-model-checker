@@ -56,18 +56,23 @@ impl ProgressMeasure{
      * 
      * @Returns m
      */
-    pub fn prog(self, v: Vertex, w: Vertex, max_priority: i64) -> Measures {
+    pub fn prog(self, v: Vertex, w: Vertex, d: i64) -> Measures {
         // is even
         if v.priority % 2 == 0 {
+            let mut m : Vec<i64> = vec![0; d as usize];
             // get least m with m >=_{p(v)} ϱ(w)
-            for i in 0..v.priority {
-                println!("{}", i);
+            if self.data[w.identifier as usize].is_none() {
+                return None
+            } else {
+                // replace everything beyond index p(v) with 0s
+                let mut ew = self.data[w.identifier as usize].clone().unwrap();
+
+                for i in v.priority+1..(ew.len() as i64) {
+                    ew[i as usize] = 0;
+                }
+
+                return Some(ew)
             }
-
-
-
-
-            return None;
         } else {
             // check if ϱ(w) = T
             if self.data[w.identifier as usize].is_none() {
@@ -75,7 +80,7 @@ impl ProgressMeasure{
             }
 
             // get least m >_{p(v)} ϱ(w)
-            return None;
+            return Some(vec![0,0,0,0]);
         }
     }
 }
