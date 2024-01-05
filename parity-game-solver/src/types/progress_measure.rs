@@ -1,8 +1,12 @@
+pub type Measures = Option<Vec<i64>>;
+// In lectures refered to as M^T OR \N^d \union \{T\} (the set of tuples of natural numbers of length d and T)
+// Here `Option` will be NULL or Vec<i64>, we will interpret NULL as T (see lecture 8, slide 6)
+
 // Specify custom type `ProgressMeasure` to hide implementation details
 pub struct ProgressMeasure {
-    pub data: Vec<Option<Vec<i64>>>,
+    pub data: Vec<Measures>,
 }
-// Here `Option` will turn into NULL or Vec<i64>, in case of NULL we will have T (see lecture 8, slide 6)
+
 
 /* NOTE: The ProgressMeasure datatype should be able to do the following things efficiently:
  * - build, store and operate on the progress mater
@@ -10,6 +14,7 @@ pub struct ProgressMeasure {
  * More precisely
  * - find v \in V such that ϱ1 < Liftv (ϱ)
  * - update ϱ(v)
+ * - find Prog(ϱ, v, w)
  *  */ 
 impl ProgressMeasure{
     /**
@@ -21,7 +26,7 @@ impl ProgressMeasure{
     pub fn new(id: i64, d: i64) -> Self{
         // note that all identifiers of vertices are between 0 and id (inclusive)
 
-        let mut data = (0..id).map(|_| Some(vec![0; d as usize])).collect::<Vec<Option<Vec<i64>>>>();
+        let data = (0..id).map(|_| Some(vec![0; d as usize])).collect::<Vec<Measures>>();
 
         return Self{
             data: data
@@ -42,7 +47,12 @@ impl ProgressMeasure{
      * • if p(v ) is even, then m ≥p(v ) ϱ(w )
      * • if p(v ) is odd, then either m >p(v ) ϱ(w ), or, if ϱ(w ) = ⊤, also m = ⊤
      */
-    pub fn prog(self, v: i64, w: i64) -> Self {
-        return self
+    pub fn prog(self, v: i64, w: i64) -> Measures {
+        // if (v.priority) {
+
+        // }
+
+
+        return None //Some(vec![0; 1 as usize]);
     }
 }

@@ -5,6 +5,7 @@ use core::cmp::max;
 mod types;
 
 use types::progress_measure::ProgressMeasure;
+use types::vertex::Vertex;
 // END IMPORT
 
 
@@ -81,6 +82,9 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
     // e.g.     0 0 0 1 "[X.]  |= 0";
     //          0 0 1 6453,20561,20562,30562;
     let mut d: i64 = 0;
+
+    // Place to store all vertices
+    let mut vertices: Vec<Vertex> = Vec::with_capacity(max_identifier as usize);
     for part in lines.skip(1) {
         // remove ; and split into parts
         let part_split = part[0..part.len()-1].split(" ").collect::<Vec<&str>>();
@@ -90,13 +94,16 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
         let owner = to_int64(part_split[2]);        // 0 or 1
         let successors = part_split[3];             // int,int,int,...
 
-        // optional name
-        let mut name = part_split.get(4);               // string, bound by "", not containing "
+        let successors_list = successors.split(",").map(|i| to_int64(i)).collect::<Vec<i64>>();
+
+        // optional name (NOT NEEDED FOR NOW)
+        // let mut name = part_split.get(4);               // string, bound by "", not containing "
 
         // calculate the maximum priority (needed for progressMeasure)
         d = max(d, priority);
 
-        
+        // add vertex
+        vertices[identifier as usize] = Vertex::new(identifier, priority, owner, successors_list);
     }
     // See lecture8, slide 12 ==> d = 1 + max{p(v) | v \in V}
     d += 1;
