@@ -80,7 +80,24 @@ impl ProgressMeasure{
             }
 
             // get least m >_{p(v)} ϱ(w)
-            return Some(vec![0,0,0,0]);
+            let mut ew = self.data[w.identifier as usize].clone().unwrap();
+            let mut changed = false;
+
+            for i in 0..v.priority+1 {
+                if ! changed && i % 2 == 1 {
+                    if ew[i as usize] < d-1 {
+                        ew[i as usize] = ew[i as usize] + 1;
+                        changed = true;
+                    }
+                } else if i % 2 == 1 {
+                    ew[i as usize] = 0;
+                }
+            }
+            if ! changed {
+                return None
+            }
+
+            return Some(ew);
         }
     }
 }

@@ -61,7 +61,7 @@ mod test_prog {
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
-        let d = 4;
+        let d = 3;
 
         let mut pm = ProgressMeasure::new(
             2, // max id
@@ -84,7 +84,7 @@ mod test_prog {
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
-        let d = 4;
+        let d = 3;
 
         let mut pm = ProgressMeasure::new(
             2, // max id
@@ -107,7 +107,7 @@ mod test_prog {
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
-        let d = 4;
+        let d = 3;
 
         let mut pm = ProgressMeasure::new(
             2, // max id
