@@ -93,8 +93,15 @@ impl ProgressMeasure{
                     ew[i as usize] = 0;
                 }
             }
+
+            // from 0 through p(v) there is nothing we can increase, thus we return T
             if ! changed {
                 return None
+            }
+
+            // tail with 0s
+            for i in v.priority+1..(ew.len() as i64) {
+                ew[i as usize] = 0;
             }
 
             return Some(ew);
