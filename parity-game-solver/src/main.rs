@@ -3,6 +3,9 @@ use clap::Parser;
 use core::cmp::max;
 
 mod types;
+mod solver;
+
+use solver::{main_algo};
 
 use types::progress_measure::ProgressMeasure;
 use types::vertex::Vertex;
@@ -43,16 +46,20 @@ fn main() {
     println!("\n###   Finished Construction   ###\n");
 
     let pm:ProgressMeasure = result.0;
-    let ltl = result.1;
+    let vertices: Vec<Vertex> = result.1;
 
-
+    main_algo(pm, vertices, args.random_lifting);
 
     println!("\n###   Terminated Succesfully   ###\n");
-
 }
 
 
-fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, String) {
+/**
+ * Read file_path and create the ProgressMeasure and a list of all vertices;
+ * 
+ * basically handles line 1 in the algo of lecture 8, slide 20/43
+ */
+fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vec<Vertex>) {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -109,11 +116,11 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
     d += 1;
     let pm = ProgressMeasure::new(max_identifier, d);
 
-
+    
 
     println!("{}", d);
 
-    return (pm, String::new())
+    return (pm, vertices)
 }
 
 fn to_int64(f: &str) -> i64 {
