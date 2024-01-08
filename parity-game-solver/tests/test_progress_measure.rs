@@ -448,6 +448,34 @@ mod test_lift_v {
         assert_eq!(pm.data[6], None);
     }
 
-    // TODO: test application twice does nothing!
+    fn test_function_liftv_multiple_applications() {
+        let construct = construct_example_lec8_slide21();
+        let mut pm: ProgressMeasure = construct.0;
+        let vertices: Vertices = construct.1;
+        const d: i64 = 4;
 
+        // X
+        // vertex id, all vertices, d
+        let mut  res = pm.lift_v(0, &vertices, d);
+        pm = res.0;
+        let mut changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        // rest is unchanged
+        for i in 1..7 {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // X again should do nothing
+        
+        let mut  res = pm.lift_v(0, &vertices, d);
+        pm = res.0;
+        let mut changed = res.1;
+        assert_eq!(changed, false); // HAS NOT CHANGED!
+        assert_eq!(pm.data[0], None);
+        // rest is unchanged
+        for i in 1..7 {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+    }
 }
