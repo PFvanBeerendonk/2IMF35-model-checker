@@ -103,7 +103,7 @@ impl ProgressMeasure{
      * 
      * NOTE that if did_update, we have that pm < Lift_v(pm)
      */
-    pub fn lift_v(mut self, v_id: i64, vertices: Vertices, d: i64) -> (Self, bool) {
+    pub fn lift_v(mut self, v_id: i64, vertices: &Vertices, d: i64) -> (Self, bool) {
         // (lecture8, slide 19/43) Define Lift_v(ϱ) for v ∈ V as follows:
         // (
         //     ϱ[v := ϱ(v) max min{Prog (ϱ, v, w) | (v, w ) ∈ E }] if v ∈ V<>

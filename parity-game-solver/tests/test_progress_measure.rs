@@ -319,19 +319,135 @@ mod test_lift_v {
     #[test]
     fn test_function_liftv_slide_example() {
         let construct = construct_example_lec8_slide21();
-        let pm: ProgressMeasure = construct.0;
+        let mut pm: ProgressMeasure = construct.0;
         let vertices: Vertices = construct.1;
+        const d: i64 = 4;
 
+        // X
         // vertex id, all vertices, d
-        let res = pm.lift_v(0, vertices, 4);
-        let result = res.0.data;
-        let changed = res.1;
+        let mut  res = pm.lift_v(0, &vertices, d);
+        pm = res.0;
+        let mut changed = res.1;
         assert_eq!(changed, true);
-        assert_eq!(result[0], None);
+        assert_eq!(pm.data[0], None);
         // rest is unchanged
         for i in 1..7 {
-            assert_eq!(result[i], Some(vec![0,0,0,0]));
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
         }
+
+        // Y', Y
+        for v in [2,3] {
+            res = pm.lift_v(v, &vertices, d);
+            pm = res.0;
+            changed = res.1;
+            assert_eq!(changed, false);
+            assert_eq!(pm.data[0], None);
+            // rest is unchanged
+            for i in 1..7 {
+                assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+            }
+        }
+
+        // X'
+        res = pm.lift_v(1, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], Some(vec![0,1,0,0]));
+        // rest is unchanged
+        for i in 2..7 {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+        
+        // Z'
+        res = pm.lift_v(5, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], Some(vec![0,1,0,0]));
+        assert_eq!(pm.data[5], None);
+        // rest is unchanged
+        for i in [2,3,4,6] {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // Z
+        res = pm.lift_v(4, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], Some(vec![0,1,0,0]));
+        assert_eq!(pm.data[4], None);
+        assert_eq!(pm.data[5], None);
+        // rest is unchanged
+        for i in [2,3,6] {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // W
+        res = pm.lift_v(6, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], Some(vec![0,1,0,0]));
+        assert_eq!(pm.data[4], None);
+        assert_eq!(pm.data[5], None);
+        assert_eq!(pm.data[6], None);
+        // rest is unchanged
+        for i in [2,3] {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // Y
+        res = pm.lift_v(2, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], Some(vec![0,1,0,0]));
+        assert_eq!(pm.data[2], None);
+        assert_eq!(pm.data[4], None);
+        assert_eq!(pm.data[5], None);
+        assert_eq!(pm.data[6], None);
+        // rest is unchanged
+        for i in [3] {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // X'
+        res = pm.lift_v(1, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], None);
+        assert_eq!(pm.data[2], None);
+        assert_eq!(pm.data[4], None);
+        assert_eq!(pm.data[5], None);
+        assert_eq!(pm.data[6], None);
+        // rest is unchanged
+        for i in [3] {
+            assert_eq!(pm.data[i], Some(vec![0,0,0,0]));
+        }
+
+        // Y'
+        res = pm.lift_v(3, &vertices, d);
+        pm = res.0;
+        changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(pm.data[0], None);
+        assert_eq!(pm.data[1], None);
+        assert_eq!(pm.data[2], None);
+        assert_eq!(pm.data[3], None);
+        assert_eq!(pm.data[4], None);
+        assert_eq!(pm.data[5], None);
+        assert_eq!(pm.data[6], None);
     }
+
+    // TODO: test application twice does nothing!
 
 }
