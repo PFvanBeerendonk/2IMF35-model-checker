@@ -259,28 +259,79 @@ mod test_min_max_measures {
 mod test_lift_v {
     use parity_game_solver::types::progress_measure::ProgressMeasure;
     use parity_game_solver::types::vertex::Vertex;
+    use parity_game_solver::types::vertex::Vertices;
     
+    /**
+     * Construct example as given in lecture 8, slide 21/43
+     */
+    fn construct_example_lec8_slide21() -> (ProgressMeasure, Vertices) {
+        let mut pm = ProgressMeasure::new(
+            7, // nr of states
+            4, // d
+        );
+        for i in 0..7 {
+            pm.data[i] = Some(vec![0,0,0,0]);
+        }
+
+        const NONE: Option<Vertex> = None;
+        let mut vertices: Vertices = Vec::from([NONE; 7]);
+
+        // Vertex: id, prio, owner, succ
+        // X
+        vertices[0] = Some(Vertex::new(
+            0, 1, 1, 
+            vec![0, 1],
+        ));
+        // X'
+        vertices[1] = Some(Vertex::new(
+            1, 1, 0, 
+            vec![2, 4],
+        ));
+        // Y
+        vertices[2] = Some(Vertex::new(
+            2, 2, 1, 
+            vec![3, 6],
+        ));
+        // Y'
+        vertices[3] = Some(Vertex::new(
+            3, 2, 0, 
+            vec![2, 0],
+        ));
+        // Z
+        vertices[4] = Some(Vertex::new(
+            4, 3, 0, 
+            vec![5],
+        ));
+        // Z'
+        vertices[5] = Some(Vertex::new(
+            5, 3, 0, 
+            vec![5],
+        ));
+        // W
+        vertices[6] = Some(Vertex::new(
+            6, 3, 0, 
+            vec![6, 4],
+        ));
+        
+        return (pm, vertices)
+    }
+
     #[test]
-    fn test_function_liftv_lec8_slide17_example1() {
-        // // Vertex: id, prio, owner, succ
-        // let v = Vertex::new(
-        //     0, 0, 1, 
-        //     Vec::<i64>::from([]),
-        // );
-        // let w = Vertex::new(
-        //     1, 1, 0, 
-        //     Vec::<i64>::from([]),
-        // );
-        // let d = 4;
+    fn test_function_liftv_slide_example() {
+        let construct = construct_example_lec8_slide21();
+        let pm: ProgressMeasure = construct.0;
+        let vertices: Vertices = construct.1;
 
-        // let mut pm = ProgressMeasure::new(
-        //     2, // max id
-        //     3, // max prio
-        // );
-        // pm.data[1] = Some(vec![0,2,0,0]);
-
-        // let result = pm.lift_v(v);
-        // assert_eq!(result, Some(vec![0,0,0,0]));
+        // vertex id, all vertices, d
+        let res = pm.lift_v(0, vertices, 4);
+        let result = res.0.data;
+        let changed = res.1;
+        assert_eq!(changed, true);
+        assert_eq!(result[0], None);
+        // rest is unchanged
+        for i in 1..7 {
+            assert_eq!(result[i], Some(vec![0,0,0,0]));
+        }
     }
 
 }

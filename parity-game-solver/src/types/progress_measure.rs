@@ -1,4 +1,5 @@
 use super::vertex::Vertex;
+use super::vertex::Vertices;
 
 pub type Measures = Option<Vec<i64>>;
 // In lectures refered to as M^T OR \N^d \union \{T\} (the set of tuples of natural numbers of length d and element T)
@@ -48,7 +49,7 @@ impl ProgressMeasure{
      * 
      * @Returns m
      */
-    pub fn prog(self, v: Vertex, w: Vertex, d: i64) -> Measures {
+    pub fn prog(&self, v: Vertex, w: Vertex, d: i64) -> Measures {
         // is even
         if _is_even(v.priority) {
             // get least m with m >=_{p(v)} ϱ(w)
@@ -94,7 +95,6 @@ impl ProgressMeasure{
         }
     }
 
-    
     /**
      * Lifts the progressMeasure with respect to v
      * 
@@ -103,26 +103,47 @@ impl ProgressMeasure{
      * 
      * NOTE that if did_update, we have that pm < Lift_v(pm)
      */
-    pub fn lift_v(self, v: Vertex, vertices: Vec<Vertex>) -> (Self, bool) {
+    pub fn lift_v(mut self, v_id: i64, vertices: Vertices, d: i64) -> (Self, bool) {
         // (lecture8, slide 19/43) Define Lift_v(ϱ) for v ∈ V as follows:
         // (
         //     ϱ[v := ϱ(v) max min{Prog (ϱ, v, w) | (v, w ) ∈ E }] if v ∈ V<>
         //     ϱ[v := ϱ(v) max max{Prog (ϱ, v, w) | (v, w ) ∈ E }] if v ∈ V□
         // )
-        // NOTE: the first max means "maximally apply". The second means "take max/min over the set of successors"
+        // NOTE: the first max means "maximally apply". The second means "take max/min over Prod w.r.t. set of successors"
 
+        let v: Vertex = vertices[v_id as usize].clone().unwrap();
+        let mut has_changed: bool = false;
+
+        let mut last_measure: Measures = self.data[v_id as usize].clone();
         // check if v ∈ V<> (else v ∈ V□)
         if v.owner == 0 {
             // ϱ[v := ϱ(v) max min{Prog (ϱ, v, w) | (v, w ) ∈ E }]
             
-
+            return (self, false); // REMOVE ME
         } else {
             // ϱ[v := ϱ(v) max max{Prog (ϱ, v, w) | (v, w ) ∈ E }]
+            while true {
+                // calculate max{Prog (ϱ, v, w) | (v, w ) ∈ E }
+                let new_measure = max_measures(v.successors.clone().into_iter().map(
+                    |w_id| self.prog(v.clone(), vertices[w_id as usize].clone().unwrap(), d)
+                ).collect());
 
+                // check if has changed
+                if true {
+                    has_changed = true;
+                    // update self and last_measure
+                    last_measure = new_measure.clone();
+                    self.data[v_id as usize] = new_measure.clone();
+                } else {
+                    // has not changed since last round, terminate
+                    return (self, has_changed);
+                }
+            }
 
         }
 
-        return (self, false);
+        
+        return (self, false); // REMOVE ME
     }
 }
 
@@ -191,8 +212,6 @@ pub fn max_measures(list: Vec<Measures>) -> Measures {
     // or terminate if we compared whole measures
     return Some(out_measure)
 }
-
-
 
 /**
  * Replaces from tail_start to end of vector `v` with value 0

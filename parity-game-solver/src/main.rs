@@ -9,6 +9,7 @@ use solver::{main_algo};
 
 use types::progress_measure::ProgressMeasure;
 use types::vertex::Vertex;
+use types::vertex::Vertices;
 // END IMPORT
 
 
@@ -46,7 +47,7 @@ fn main() {
     println!("\n###   Finished Construction   ###\n");
 
     let pm:ProgressMeasure = result.0;
-    let vertices: Vec<Vertex> = result.1;
+    let vertices: Vertices = result.1;
 
     main_algo(pm, vertices, args.random_lifting);
 
@@ -59,7 +60,7 @@ fn main() {
  * 
  * basically handles line 1 in the algo of lecture 8, slide 20/43
  */
-fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vec<Vertex>) {
+fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vertices) {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -91,7 +92,8 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
     let mut d: i64 = 0;
 
     // Place to store all vertices
-    let mut vertices: Vec<Vertex> = Vec::with_capacity(max_identifier as usize);
+    const NONE: Option<Vertex> = None;
+    let mut vertices: Vertices = vec![NONE; max_identifier as usize];
     for part in lines.skip(1) {
         // remove ; and split into parts
         let part_split = part[0..part.len()-1].split(" ").collect::<Vec<&str>>();
@@ -110,7 +112,7 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
         d = max(d, priority);
 
         // add vertex
-        vertices[identifier as usize] = Vertex::new(identifier, priority, owner, successors_list);
+        vertices[identifier as usize] = Some(Vertex::new(identifier, priority, owner, successors_list));
     }
     // See lecture8, slide 12 ==> d = 1 + max{p(v) | v \in V}
     d += 1;

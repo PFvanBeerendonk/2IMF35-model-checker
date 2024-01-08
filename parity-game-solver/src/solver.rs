@@ -1,8 +1,9 @@
 use crate::types::progress_measure::ProgressMeasure;
 use crate::types::vertex::Vertex;
+use crate::types::vertex::Vertices;
 
 
-pub fn main_algo(progress_measure: ProgressMeasure, vertices: Vec<Vertex>, random_lifting: bool) {
+pub fn main_algo(progress_measure: ProgressMeasure, vertices: Vertices, random_lifting: bool) {
     // if args.random_lifting is not set, we follow  order of `vertices`. Otherwise we will use a random seed based function
 
     let mut pm: ProgressMeasure = progress_measure;

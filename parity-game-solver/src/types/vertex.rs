@@ -2,10 +2,13 @@
 // Specify custom type `Vertex`
 // follows `https://www.mcrl2.org/web/user_manual/tools/lts.html`
 
+pub type Vertices = Vec<Option<Vertex>>;
+
+#[derive(Clone)]
 pub struct Vertex {
     pub identifier: i64,
     pub priority: i64,
-    pub owner: i64,
+    pub owner: i64, // here owner 0 == V<> and owner 1 == V□
     pub successors: Vec<i64>,
 }
 
@@ -14,7 +17,7 @@ pub struct Vertex {
  * 
  * - return priority
  * - return successor identifiers
- *  */ 
+ */ 
 impl Vertex{
     /**
      * Initialize node
