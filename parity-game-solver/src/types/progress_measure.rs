@@ -165,6 +165,46 @@ pub fn min_measures(list: Vec<Measures>) -> Measures {
 }
 
 /**
+ * Given a list of measures of equal length or None, return the maximal measure
+ * Assumes that list is not empty
+ */
+pub fn max_measures(list: Vec<Measures>) -> Measures {
+    let mut filtered: Vec<Vec<i64>> = list.clone().into_iter().flatten().collect();
+
+    // some value is none
+    if filtered.len() < list.len() {
+        return None
+    }
+
+    let mut out_measure: Vec<i64> = vec![0; filtered[0].len()];
+
+    // go over each character
+    for char_index in 0..filtered[0].len() {
+        println!("{}", char_index);
+        // find smallest char
+        out_measure[char_index] = filtered.iter().map(|x| x[char_index]).max().unwrap();
+
+        // remove too large measures from filtered
+        filtered.retain(|x| x[char_index] == out_measure[char_index]);
+
+        for e in &filtered {
+            println!("{:?}", e);
+        }
+
+        // terminate if filtered has length 1
+        if filtered.len() == 1 {
+            // return the only possible answer
+            return Some(filtered[0].clone())
+        }
+    }
+
+    // or terminate if we compared whole measures
+    return Some(out_measure)
+}
+
+
+
+/**
  * Replaces from tail_start to end of vector `v` with value 0
  * 
  e.g. v=[1,2,3,4,5] with tail_start=3 should be [1,2,3,0,0]

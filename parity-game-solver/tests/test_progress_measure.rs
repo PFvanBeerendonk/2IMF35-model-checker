@@ -155,8 +155,9 @@ mod test_helper {
 
 #[cfg(test)]
 mod test_min_max_measures {
-    use parity_game_solver::types::progress_measure::min_measures;
+    use parity_game_solver::types::progress_measure::{min_measures, max_measures};
     
+    // min measures
     #[test]
     fn test_function_min_measures_none() {
         let list = vec!(
@@ -203,7 +204,54 @@ mod test_min_max_measures {
         let result = min_measures(list);
         assert_eq!(result, Some(vec![0,1,0,1]));
     }
-    // TODO: test max_measure
+    
+    // max measures
+    #[test]
+    fn test_function_max_measures() {
+        let list = vec!(
+            Some( vec![0,1,0,1] ),
+            Some( vec![0,0,0,0] ),
+        );
+        let result = max_measures(list);
+        assert_eq!(result, Some(vec![0,1,0,1]));
+    }
+    
+    #[test]
+    fn test_function_max_measures_none() {
+        let list = vec!(
+            Some( vec![0,1,0,1] ),
+            None,
+            Some( vec![0,2,0,1]),
+        );
+        let result = max_measures(list);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_function_max_measures_all_none() {
+        let list = vec!(
+            None,
+            None,
+            None,
+        );
+        let result = max_measures(list);
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_function_max_measures_same() {
+        let list = vec!(
+            Some( vec![0,1,0,1] ),
+            Some( vec![0,1,0,1] ),
+            Some( vec![0,1,0,1] ),
+            Some( vec![0,2,0,1]),
+            Some( vec![0,2,0,1]),
+            Some( vec![0,2,0,0]),
+        );
+        let result = max_measures(list);
+        assert_eq!(result, Some(vec![0,2,0,1]));
+    }
+    
 }
 
 
