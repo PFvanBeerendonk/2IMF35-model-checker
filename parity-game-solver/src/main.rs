@@ -48,8 +48,9 @@ fn main() {
 
     let pm:ProgressMeasure = result.0;
     let vertices: Vertices = result.1;
+    let d: i64 = result.2;
 
-    main_algo(pm, vertices, args.random_lifting);
+    main_algo(pm, &vertices, d, args.random_lifting);
 
     println!("\n###   Terminated Succesfully   ###\n");
 }
@@ -60,7 +61,7 @@ fn main() {
  * 
  * basically handles line 1 in the algo of lecture 8, slide 20/43
  */
-fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vertices) {
+fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vertices, i64) {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
@@ -93,8 +94,8 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
 
     // Place to store all vertices
     const NONE: Option<Vertex> = None;
-    let mut vertices: Vertices = vec![NONE; max_identifier as usize];
-    for part in lines.skip(1) {
+    let mut vertices: Vertices = vec![NONE; (max_identifier+1) as usize];
+    for part in lines.skip(0) {
         // remove ; and split into parts
         let part_split = part[0..part.len()-1].split(" ").collect::<Vec<&str>>();
 
@@ -116,13 +117,9 @@ fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, 
     }
     // See lecture8, slide 12 ==> d = 1 + max{p(v) | v \in V}
     d += 1;
-    let pm = ProgressMeasure::new(max_identifier, d);
-
+    let pm = ProgressMeasure::new(max_identifier+1, d);
     
-
-    println!("{}", d);
-
-    return (pm, vertices)
+    return (pm, vertices, d)
 }
 
 fn to_int64(f: &str) -> i64 {

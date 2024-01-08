@@ -5,6 +5,7 @@
 pub type Vertices = Vec<Option<Vertex>>;
 
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct Vertex {
     pub identifier: i64,
     pub priority: i64,
