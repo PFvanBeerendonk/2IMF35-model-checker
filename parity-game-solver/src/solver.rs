@@ -36,5 +36,19 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
             }
         }
     }
+
+
+    // checking stuff
+    println!("\nDisplaying results . . . \n");
+
+    println!("{: <10} | ϱ()", "ID");
+    println!("-----------+------------------------------------");
+    for (i, row) in pm.data.iter().enumerate()  {
+        if row.is_none() {
+            println!("{: <10} | T", i);
+        } else {
+            println!("{: <10} | {:?}", i, row.clone().unwrap());
+        }
+    }
 }
 
