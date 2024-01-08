@@ -118,18 +118,14 @@ impl ProgressMeasure{
         // check if v ∈ V<> (else v ∈ V□)
         if v.owner == 0 {
             // ϱ[v := ϱ(v) max min{Prog (ϱ, v, w) | (v, w ) ∈ E }]
-            
-            return (self, false); // REMOVE ME
-        } else {
-            // ϱ[v := ϱ(v) max max{Prog (ϱ, v, w) | (v, w ) ∈ E }]
-            while true {
-                // calculate max{Prog (ϱ, v, w) | (v, w ) ∈ E }
-                let new_measure = max_measures(v.successors.clone().into_iter().map(
+            loop {
+                // calculate min{Prog (ϱ, v, w) | (v, w ) ∈ E }
+                let new_measure = min_measures(v.successors.clone().into_iter().map(
                     |w_id| self.prog(v.clone(), vertices[w_id as usize].clone().unwrap(), d)
                 ).collect());
 
                 // check if has changed
-                if true {
+                if last_measure != new_measure {
                     has_changed = true;
                     // update self and last_measure
                     last_measure = new_measure.clone();
@@ -139,11 +135,26 @@ impl ProgressMeasure{
                     return (self, has_changed);
                 }
             }
+        } else {
+            // ϱ[v := ϱ(v) max max{Prog (ϱ, v, w) | (v, w ) ∈ E }]
+            loop {
+                // calculate max{Prog (ϱ, v, w) | (v, w ) ∈ E }
+                let new_measure = max_measures(v.successors.clone().into_iter().map(
+                    |w_id| self.prog(v.clone(), vertices[w_id as usize].clone().unwrap(), d)
+                ).collect());
 
+                // check if has changed
+                if last_measure != new_measure {
+                    has_changed = true;
+                    // update self and last_measure
+                    last_measure = new_measure.clone();
+                    self.data[v_id as usize] = new_measure.clone();
+                } else {
+                    // has not changed since last round, terminate
+                    return (self, has_changed);
+                }
+            }
         }
-
-        
-        return (self, false); // REMOVE ME
     }
 }
 
