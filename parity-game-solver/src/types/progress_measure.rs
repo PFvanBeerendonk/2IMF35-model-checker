@@ -142,16 +142,11 @@ pub fn min_measures(list: Vec<Measures>) -> Measures {
 
     // go over each character
     for char_index in 0..filtered[0].len() {
-        println!("{}", char_index);
         // find smallest char
         out_measure[char_index] = filtered.iter().map(|x| x[char_index]).min().unwrap();
 
         // remove too large measures from filtered
         filtered.retain(|x| x[char_index] == out_measure[char_index]);
-
-        for e in &filtered {
-            println!("{:?}", e);
-        }
 
         // terminate if filtered has length 1
         if filtered.len() == 1 {
@@ -180,16 +175,11 @@ pub fn max_measures(list: Vec<Measures>) -> Measures {
 
     // go over each character
     for char_index in 0..filtered[0].len() {
-        println!("{}", char_index);
         // find smallest char
         out_measure[char_index] = filtered.iter().map(|x| x[char_index]).max().unwrap();
 
         // remove too large measures from filtered
         filtered.retain(|x| x[char_index] == out_measure[char_index]);
-
-        for e in &filtered {
-            println!("{:?}", e);
-        }
 
         // terminate if filtered has length 1
         if filtered.len() == 1 {
