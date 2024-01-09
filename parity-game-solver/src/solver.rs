@@ -1,9 +1,8 @@
 use crate::types::progress_measure::ProgressMeasure;
 use crate::types::vertex::Vertices;
 
+use permutation_iterator::Permutor;
 
-use hashed_permutation::HashedIter;
-use std::num::NonZeroU32;
 
 pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, seed: Option<i64>) {
     // if seed is not set, we follow  order of `vertices`. Otherwise we will use a random seed based function
@@ -17,14 +16,11 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
     let mut result;
     let mut loop_end: bool = false;
 
-    let mut iter: Option<HashedIter>;
-    let length: u32 = vertices.len().try_into().unwrap();
+    let mut iter: Option<Permutor>;
+    let length = vertices.len() as u64;
     // if a seed is provided, we will make a hashed iterator
     if ! seed.is_none() {
-        iter = Some(HashedIter::new_with_seed(
-            NonZeroU32::new(length).unwrap(), 
-            seed.unwrap().try_into().unwrap()
-        ));
+        iter = Some(Permutor::new_with_u64_key(length, seed.unwrap() as u64));
 
         id = iter.as_mut().unwrap().next().unwrap() as i64;
     } else {
@@ -51,16 +47,14 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
                 Some(x) => id = x as i64,
                 None => {
                     // hard reset the iterator
-                    iter = Some(HashedIter::new_with_seed(
-                        NonZeroU32::new(length).unwrap(), 
-                        seed.unwrap().try_into().unwrap()
-                    ));
+                    iter = Some(Permutor::new_with_u64_key(length, seed.unwrap() as u64));
             
                     id = iter.as_mut().unwrap().next().unwrap() as i64;
                     loop_end = true; // check final loop termination
                 },
             }
         }
+        println!("{}",id);
 
         // final master loop termination
         if loop_end {

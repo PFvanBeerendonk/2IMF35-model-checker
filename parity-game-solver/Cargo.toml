@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.4.10", features = ["derive"] }
-hashed-permutation = "3.0.2"
+permutation_iterator = "0.1.2"
