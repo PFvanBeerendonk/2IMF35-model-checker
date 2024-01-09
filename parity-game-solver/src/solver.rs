@@ -26,7 +26,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
             seed.unwrap().try_into().unwrap()
         ));
 
-        id = to_i64(iter.as_mut().unwrap().next().unwrap());
+        id = iter.as_mut().unwrap().next().unwrap() as i64;
     } else {
         iter = None;
     }
@@ -48,7 +48,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
             }
         } else if ! iter.is_none() {
             match iter.as_mut().unwrap().next() {
-                Some(x) => id = to_i64(x),
+                Some(x) => id = x as i64,
                 None => {
                     // hard reset the iterator
                     iter = Some(HashedIter::new_with_seed(
@@ -56,7 +56,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
                         seed.unwrap().try_into().unwrap()
                     ));
             
-                    id = to_i64(iter.as_mut().unwrap().next().unwrap());
+                    id = iter.as_mut().unwrap().next().unwrap() as i64;
                     loop_end = true; // check final loop termination
                 },
             }
@@ -96,8 +96,4 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
             println!("{: <10} | {:?}", i, row.clone().unwrap());
         }
     }
-}
-
-fn to_i64(f: u32) -> i64 {
-    return f as i64;
 }
