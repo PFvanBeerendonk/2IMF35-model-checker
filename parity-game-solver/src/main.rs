@@ -27,12 +27,6 @@ struct Args {
     #[arg(short, long, default_value_t=false)]
     random_lifting: bool,
 
-
-
-    /// Print debug data
-    #[arg(short, long, default_value_t=false)]
-    debug: bool,
-
     /// Test if state `test_state` is in the output
     #[arg(short, long, default_value_t=-1)]
     test_state: i64,
@@ -43,7 +37,7 @@ fn main() {
     // Parse the arguments:
     let args: Args = Args::parse();
 
-    let result = read_gm_file(args.gm_file, args.debug);
+    let result = read_gm_file(args.gm_file);
     println!("\n###   Finished Construction   ###\n");
 
     let pm:ProgressMeasure = result.0;
@@ -69,7 +63,7 @@ fn main() {
  * 
  * basically handles line 1 in the algo of lecture 8, slide 20/43
  */
-fn read_gm_file(file_path: std::path::PathBuf, debug:bool) -> (ProgressMeasure, Vertices, i64) {
+fn read_gm_file(file_path: std::path::PathBuf) -> (ProgressMeasure, Vertices, i64) {
     if !file_path.exists() {
         panic!("File {:?} does not exist", file_path);
     }
