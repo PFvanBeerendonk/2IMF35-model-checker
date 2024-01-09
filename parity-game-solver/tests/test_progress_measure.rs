@@ -38,7 +38,7 @@ mod test_prog {
             1, 1, 0, 
             Vec::<i64>::from([]),
         );
-        let d = 4;
+        const D: i64 = 4;
 
         let mut pm = ProgressMeasure::new(
             2, // max id
@@ -46,7 +46,7 @@ mod test_prog {
         );
         pm.data[1] = Some(vec![0,2,0,0]);
 
-        let result = pm.prog(v, w, d);
+        let result = pm.prog(v, w, D);
         assert_eq!(result, Some(vec![0,0,0,0]));
     }
 
@@ -321,11 +321,11 @@ mod test_lift_v {
         let construct = construct_example_lec8_slide21();
         let mut pm: ProgressMeasure = construct.0;
         let vertices: Vertices = construct.1;
-        const d: i64 = 4;
+        const D: i64 = 4;
 
         // X
         // vertex id, all vertices, d
-        let mut  res = pm.lift_v(0, &vertices, d);
+        let mut  res = pm.lift_v(0, &vertices, D);
         pm = res.0;
         let mut changed = res.1;
         assert_eq!(changed, true);
@@ -337,7 +337,7 @@ mod test_lift_v {
 
         // Y', Y
         for v in [2,3] {
-            res = pm.lift_v(v, &vertices, d);
+            res = pm.lift_v(v, &vertices, D);
             pm = res.0;
             changed = res.1;
             assert_eq!(changed, false);
@@ -349,7 +349,7 @@ mod test_lift_v {
         }
 
         // X'
-        res = pm.lift_v(1, &vertices, d);
+        res = pm.lift_v(1, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -361,7 +361,7 @@ mod test_lift_v {
         }
         
         // Z'
-        res = pm.lift_v(5, &vertices, d);
+        res = pm.lift_v(5, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -374,7 +374,7 @@ mod test_lift_v {
         }
 
         // Z
-        res = pm.lift_v(4, &vertices, d);
+        res = pm.lift_v(4, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -388,7 +388,7 @@ mod test_lift_v {
         }
 
         // W
-        res = pm.lift_v(6, &vertices, d);
+        res = pm.lift_v(6, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -403,7 +403,7 @@ mod test_lift_v {
         }
 
         // Y
-        res = pm.lift_v(2, &vertices, d);
+        res = pm.lift_v(2, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -419,7 +419,7 @@ mod test_lift_v {
         }
 
         // X'
-        res = pm.lift_v(1, &vertices, d);
+        res = pm.lift_v(1, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -435,7 +435,7 @@ mod test_lift_v {
         }
 
         // Y'
-        res = pm.lift_v(3, &vertices, d);
+        res = pm.lift_v(3, &vertices, D);
         pm = res.0;
         changed = res.1;
         assert_eq!(changed, true);
@@ -448,15 +448,16 @@ mod test_lift_v {
         assert_eq!(pm.data[6], None);
     }
 
+    #[test]
     fn test_function_liftv_multiple_applications() {
         let construct = construct_example_lec8_slide21();
         let mut pm: ProgressMeasure = construct.0;
         let vertices: Vertices = construct.1;
-        const d: i64 = 4;
+        const D: i64 = 4;
 
         // X
         // vertex id, all vertices, d
-        let mut  res = pm.lift_v(0, &vertices, d);
+        let mut res = pm.lift_v(0, &vertices, D);
         pm = res.0;
         let mut changed = res.1;
         assert_eq!(changed, true);
@@ -468,9 +469,9 @@ mod test_lift_v {
 
         // X again should do nothing
         
-        let mut  res = pm.lift_v(0, &vertices, d);
+        res = pm.lift_v(0, &vertices, D);
         pm = res.0;
-        let mut changed = res.1;
+        changed = res.1;
         assert_eq!(changed, false); // HAS NOT CHANGED!
         assert_eq!(pm.data[0], None);
         // rest is unchanged

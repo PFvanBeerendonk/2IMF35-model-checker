@@ -50,7 +50,15 @@ fn main() {
     let vertices: Vertices = result.1;
     let d: i64 = result.2;
 
-    main_algo(pm, &vertices, d, args.random_lifting);
+    // set a seed
+    let seed;
+    if args.random_lifting {
+        seed = Some(1234);
+    } else {
+        seed = None
+    }
+
+    main_algo(pm, &vertices, d, seed);
 
     println!("\n###   Terminated Succesfully   ###\n");
 }
