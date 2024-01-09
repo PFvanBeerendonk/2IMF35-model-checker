@@ -27,9 +27,9 @@ struct Args {
     #[arg(short, long, default_value_t=false)]
     random_lifting: bool,
 
-    /// Test if state `test_state` is in the output
-    #[arg(short, long, default_value_t=-1)]
-    test_state: i64,
+    /// Give a default seed, only used if `random_lifting` is enabled
+    #[arg(short, long, default_value_t=1234)]
+    seed: i64,
 }
 
 
@@ -47,7 +47,7 @@ fn main() {
     // set a seed
     let seed;
     if args.random_lifting {
-        seed = Some(1234);
+        seed = Some(args.seed);
     } else {
         seed = None
     }
