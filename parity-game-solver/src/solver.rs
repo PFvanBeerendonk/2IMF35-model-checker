@@ -1,10 +1,11 @@
 use crate::types::progress_measure::ProgressMeasure;
 use crate::types::vertex::Vertices;
+use crate::types::lifting_strategies::least_successor_order;
 
 use permutation_iterator::Permutor;
 
 
-pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, seed: Option<i64>) {
+pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, lifting_strategy: i64, seed: Option<i64>) {
     // if seed is not set, we follow  order of `vertices`. Otherwise we will use a random seed based function
 
     let mut pm: ProgressMeasure = progress_measure;
@@ -18,11 +19,18 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
 
     let mut iter: Option<Permutor>;
     let length = vertices.len() as u64;
+
+    // the vertex identifiers sorted based on the least successor lifting strategy
+    let mut least_successor_sorted = Default::default();
     // if a seed is provided, we will make a hashed iterator
-    if ! seed.is_none() {
+    if lifting_strategy == 1 {
         iter = Some(Permutor::new_with_u64_key(length, seed.unwrap() as u64));
 
         id = iter.as_mut().unwrap().next().unwrap() as i64;
+    } else if lifting_strategy == 2 {
+        least_successor_sorted = least_successor_order(&vertices).into_iter();
+        id = least_successor_sorted.next().unwrap() as i64;
+        iter = None;
     } else {
         iter = None;
     }
@@ -36,11 +44,23 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
         if did_update {
             did_update_this_master_loop = true;
         }
-        if seed.is_none() {
+        // if the lifting strategy is based on the given input order
+        if lifting_strategy == 0 {
             id += 1;
             if id == vertices.len() as i64 {
                 id = 0;
                 loop_end = true; // check final loop termination
+            }
+        } else if lifting_strategy == 2 {
+            match least_successor_sorted.next() {
+                Some(x) => id = x as i64,
+                None => {
+                    // hard reset the iterator
+                    least_successor_sorted = least_successor_order(&vertices).into_iter();
+            
+                    id = least_successor_sorted.next().unwrap() as i64;
+                    loop_end = true; // check final loop termination
+                },
             }
         } else if ! iter.is_none() {
             match iter.as_mut().unwrap().next() {
@@ -54,7 +74,6 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d:i64, 
                 },
             }
         }
-        println!("{}",id);
 
         // final master loop termination
         if loop_end {

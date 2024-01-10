@@ -23,11 +23,15 @@ struct Args {
     #[arg(short, long)]
     gm_file: std::path::PathBuf,
 
-    /// Use the "random order" lifting strategy. Otherwise "input order" is used
-    #[arg(short, long, default_value_t=false)]
-    random_lifting: bool,
+    /// Which lifting strategy is used.
+    /// 0 for "input order" lifting strategy
+    /// 1 for "random order" lifting strategy
+    /// 2 for "least successors" lifting strategy
+    /// 3 for fourth lifting strategy TODO
+    #[arg(short, long, default_value_t=0, verbatim_doc_comment)]
+    lifting_strategy: i64,
 
-    /// Give a default seed, only used if `random_lifting` is enabled
+    /// Give a default seed, only used if `lifting_strategy` is 1 (random order)
     #[arg(short, long, default_value_t=1234)]
     seed: i64,
 }
@@ -46,13 +50,13 @@ fn main() {
 
     // set a seed
     let seed;
-    if args.random_lifting {
+    if args.lifting_strategy == 1 {
         seed = Some(args.seed);
     } else {
         seed = None
     }
 
-    main_algo(pm, &vertices, d, seed);
+    main_algo(pm, &vertices, d, args.lifting_strategy, seed);
 
     println!("\n###   Terminated Succesfully   ###\n");
 }
