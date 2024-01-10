@@ -100,7 +100,9 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
                 None => {
                     // hard reset the iterator
                     println!("reset!");
-                    let top: HashMap<i64, bool> = HashMap::new();
+                    let top: HashMap<i64, bool> = pm.data.iter().enumerate()
+                        .filter_map(|(i, row)| if row.is_none() { Some((i as i64, true)) } else { None })
+                        .collect();
                     predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
             
                     id = predecessor_lifting_strat.next().unwrap().identifier;
