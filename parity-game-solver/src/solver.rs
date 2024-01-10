@@ -75,7 +75,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
             did_update_this_master_loop = true;
         }
         // if the lifting strategy is based on the given input order
-        if lifting_strategy == 0 || lifting_strategy >= 3 {
+        if lifting_strategy == 0 || lifting_strategy == 3 {
             id += 1;
             if id == vertices.len() as i64 {
                 id = 0;
@@ -91,6 +91,19 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
                     least_successor_lifting_strat = least_successor_order(&vertices).into_iter();
             
                     id = least_successor_lifting_strat.next().unwrap() as i64;
+                    loop_end = true; // check final loop termination
+                },
+            }
+        } else if lifting_strategy == 4 {
+            match predecessor_lifting_strat.next() {
+                Some(x) => id = x.identifier as i64,
+                None => {
+                    // hard reset the iterator
+                    println!("reset!");
+                    let top: HashMap<i64, bool> = HashMap::new();
+                    predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
+            
+                    id = predecessor_lifting_strat.next().unwrap().identifier;
                     loop_end = true; // check final loop termination
                 },
             }
