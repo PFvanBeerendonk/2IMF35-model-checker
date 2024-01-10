@@ -11,6 +11,15 @@ pub struct ProgressMeasure {
     // For some instance `pm`, pm.data contains the progressMeasure so we can use the impl trait below
 }
 
+impl Clone for ProgressMeasure {
+    fn clone(&self) -> Self {
+        let cloned_data = self.data.clone();
+        ProgressMeasure {
+            data: cloned_data,
+        }
+    }
+}
+
 
 /* NOTE: The ProgressMeasure datatype should be able to do the following things efficiently:
  * - build, store and operate on the progress mater
