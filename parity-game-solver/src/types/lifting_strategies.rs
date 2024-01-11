@@ -21,14 +21,25 @@ pub fn least_successor_order(vertices: &Vertices) -> Vec<i64> {
         .collect()
 }
 
+pub fn most_successor_order(vertices: &Vertices) -> Vec<i64> {
+    let mut indices: Vec<usize> = vertices
+        .iter()
+        .enumerate()
+        .filter_map(|(index, v)| v.as_ref().map(|_| index))
+        .collect();
 
-#[derive(Debug)]// Algorithm 4.4 Focus List Lifting Strategy
-pub struct FocusListLiftingStrategy {
-    phase: i64,
-    num_attempts: i64,
-    num_failed: i64,
-    next_vertex: i64,
-    focus_list: VecDeque<(Vertex, i64)>,
+    indices.sort_by_cached_key(|&index| {
+        vertices[index]
+            .as_ref()
+            .map_or(0, |vertex| vertex.successors.len())
+    });
+
+    indices.reverse(); // Reverse the sorted indices to get most to least
+
+    indices
+        .iter()
+        .map(|&index| vertices[index].as_ref().unwrap().identifier)
+        .collect()
 }
 
 impl FocusListLiftingStrategy {
