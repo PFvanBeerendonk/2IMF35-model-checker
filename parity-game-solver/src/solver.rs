@@ -62,101 +62,119 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         // Access the next vertex in the queue
         id = predecessor_lifting_strat.next().unwrap().identifier as i64;
         iter = None;
-    } else if lifting_strategy == 5 {
-        let mut strategy = FocusListLiftingStrategy::new();
+    } 
+    // else if lifting_strategy == 5 {
+    //     let mut strategy = FocusListLiftingStrategy::new();
 
+    //     let mut progress_measure_cp = progress_measure.clone();
+    //     strategy.run(
+    //         &mut progress_measure_cp,
+    //         &vertices,
+    //         d,
+    //         (length / 10).try_into().unwrap(),
+    //         length.try_into().unwrap(),
+    //     );
+    //     id = strategy.next_vertex;
+    //     if debug {
+    //         println!("{:?}", strategy);
+    //     }
+    // } 
+    else {
+        iter = None;
+    }
+
+    let mut pm_to_return; 
+
+    if lifting_strategy == 5 {
+        let mut strategy = FocusListLiftingStrategy::new();
         let mut progress_measure_cp = progress_measure.clone();
         strategy.run(
             &mut progress_measure_cp,
             &vertices,
             d,
-            length.try_into().unwrap(),
             (length / 10).try_into().unwrap(),
+            length.try_into().unwrap(),
         );
-        id = strategy.next_vertex;
-        if debug {
-            println!("{:?}", strategy);
-        }
+        pm_to_return = progress_measure_cp;
     } else {
-        iter = None;
-    }
-
-    loop {
-        result = pm.lift_v(id, &vertices, d);
-        total_lifts += 1;
-        pm = result.0;
-        did_update = result.1;
-
-        // check if ϱ < Liftv (ϱ) for vertex v
-        if did_update {
-            did_update_this_master_loop = true;
-            successful_lifts += 1;
-        }
-        // if the lifting strategy is based on the given input order
-        if lifting_strategy == 0 || lifting_strategy == 5 {
-            id += 1;
-            if id == vertices.len() as i64 {
-                id = 0;
-                loop_end = true; // check final loop termination
+        loop {
+            result = pm.lift_v(id, &vertices, d);
+            total_lifts += 1;
+            pm = result.0;
+            did_update = result.1;
+    
+            // check if ϱ < Liftv (ϱ) for vertex v
+            if did_update {
+                did_update_this_master_loop = true;
+                successful_lifts += 1;
             }
-        } else if lifting_strategy == 2 {
-            match least_successor_lifting_strat.next() {
-                Some(x) => id = x as i64,
-                None => {
-                    // hard reset the iterator
-                    least_successor_lifting_strat = least_successor_order(&vertices).into_iter();
-            
-                    id = least_successor_lifting_strat.next().unwrap() as i64;
+            // if the lifting strategy is based on the given input order
+            if lifting_strategy == 0 || lifting_strategy == 5 {
+                id += 1;
+                if id == vertices.len() as i64 {
+                    id = 0;
                     loop_end = true; // check final loop termination
-                },
+                }
+            } else if lifting_strategy == 2 {
+                match least_successor_lifting_strat.next() {
+                    Some(x) => id = x as i64,
+                    None => {
+                        // hard reset the iterator
+                        least_successor_lifting_strat = least_successor_order(&vertices).into_iter();
+                
+                        id = least_successor_lifting_strat.next().unwrap() as i64;
+                        loop_end = true; // check final loop termination
+                    },
+                }
+            } else if lifting_strategy == 3 {
+                match most_successor_lifting_strat.next() {
+                    Some(x) => id = x as i64,
+                    None => {
+                        // hard reset the iterator
+                        most_successor_lifting_strat = most_successor_order(&vertices).into_iter();
+                
+                        id = most_successor_lifting_strat.next().unwrap() as i64;
+                        loop_end = true; // check final loop termination
+                    },
+                }
+            } else if lifting_strategy == 4 {
+                match predecessor_lifting_strat.next() {
+                    Some(x) => id = x.identifier as i64,
+                    None => {
+                        // hard reset the iterator
+                        let top: HashMap<i64, bool> = pm.data.iter().enumerate()
+                            .filter_map(|(i, row)| if row.is_none() { Some((i as i64, true)) } else { None })
+                            .collect();
+                        predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
+                
+                        id = predecessor_lifting_strat.next().unwrap().identifier;
+                        loop_end = true; // check final loop termination
+                    },
+                }
+            } else if ! iter.is_none() {
+                match iter.as_mut().unwrap().next() {
+                    Some(x) => id = x as i64,
+                    None => {
+                        // hard reset the iterator
+                        iter = Some(Permutor::new_with_u64_key(length, seed.unwrap() as u64));
+                
+                        id = iter.as_mut().unwrap().next().unwrap() as i64;
+                        loop_end = true; // check final loop termination
+                    },
+                }
             }
-        } else if lifting_strategy == 3 {
-            match most_successor_lifting_strat.next() {
-                Some(x) => id = x as i64,
-                None => {
-                    // hard reset the iterator
-                    most_successor_lifting_strat = most_successor_order(&vertices).into_iter();
-            
-                    id = most_successor_lifting_strat.next().unwrap() as i64;
-                    loop_end = true; // check final loop termination
-                },
-            }
-        } else if lifting_strategy == 4 {
-            match predecessor_lifting_strat.next() {
-                Some(x) => id = x.identifier as i64,
-                None => {
-                    // hard reset the iterator
-                    let top: HashMap<i64, bool> = pm.data.iter().enumerate()
-                        .filter_map(|(i, row)| if row.is_none() { Some((i as i64, true)) } else { None })
-                        .collect();
-                    predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
-            
-                    id = predecessor_lifting_strat.next().unwrap().identifier;
-                    loop_end = true; // check final loop termination
-                },
-            }
-        } else if ! iter.is_none() {
-            match iter.as_mut().unwrap().next() {
-                Some(x) => id = x as i64,
-                None => {
-                    // hard reset the iterator
-                    iter = Some(Permutor::new_with_u64_key(length, seed.unwrap() as u64));
-            
-                    id = iter.as_mut().unwrap().next().unwrap() as i64;
-                    loop_end = true; // check final loop termination
-                },
-            }
-        }
-
-        // final master loop termination
-        if loop_end {
-            loop_end = false;
-
-            // we did not update ANYTHING this id loop; so we have reached a stable point
-            if ! did_update_this_master_loop {
-                break;
-            } else {
-                did_update_this_master_loop = false;
+    
+            // final master loop termination
+            if loop_end {
+                loop_end = false;
+    
+                // we did not update ANYTHING this id loop; so we have reached a stable point
+                if ! did_update_this_master_loop {
+                    pm_to_return = pm.clone();
+                    break;
+                } else {
+                    did_update_this_master_loop = false;
+                }
             }
         }
     }
@@ -165,8 +183,8 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     let elapsed = now.elapsed();
     
 
-    let non_t_count = pm.data.iter().flatten().count();
-    let size = pm.data.iter().count();
+    let non_t_count = pm_to_return.data.iter().flatten().count();
+    let size = pm_to_return.data.iter().count();
     if output.is_some() {
         println!("\n###   Finished Calculations   ### (for {} in {:.4?})\n", output.clone().expect("no output file").as_path().display().to_string(), elapsed);
 
@@ -182,7 +200,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         write!(f, "Success lifts: {}\n", successful_lifts).expect("unable to write");
         write!(f, "\n\n{: <10} | ϱ()\n", "ID").expect("unable to write");
         write!(f, "-----------+------------------------------------\n").expect("unable to write");
-        for (i, row) in pm.data.iter().enumerate()  {
+        for (i, row) in pm_to_return.data.iter().enumerate()  {
             if row.is_none() {
                 write!(f, "{: <10} | T\n", i).expect("unable to write");
             } else {
@@ -201,7 +219,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
 
         println!("\n\n{: <10} | ϱ()", "ID");
         println!("-----------+------------------------------------");
-        for (i, row) in pm.data.iter().enumerate()  {
+        for (i, row) in pm_to_return.data.iter().enumerate()  {
             if row.is_none() {
                 println!("{: <10} | T", i);
             } else {

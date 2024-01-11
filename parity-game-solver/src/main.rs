@@ -31,7 +31,7 @@ struct Args {
     folder: Option<std::path::PathBuf>,
 
     /// Only if there is a folder specified; use all the folowing lifting strategies
-    #[arg(short, long, default_values_t=vec![0,1,2,3,4], conflicts_with="lifting_strategy")]
+    #[arg(short, long, default_values_t=vec![0,1,2,3,4,5], conflicts_with="lifting_strategy")]
     multiple_lifting_strategies: Vec<i64>,
 
     /// Where the output folder is located, emtpy if there should be no output
