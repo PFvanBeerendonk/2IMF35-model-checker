@@ -82,15 +82,15 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
 
     if lifting_strategy == 5 {
         let mut strategy = FocusListLiftingStrategy::new();
-        let mut progress_measure_cp = progress_measure.clone();
-        strategy.run(
-            &mut progress_measure_cp,
+        pm_to_return = strategy.run(
+            &progress_measure,
             &vertices,
             d,
             (length / 10).try_into().unwrap(),
             length.try_into().unwrap(),
         );
-        pm_to_return = progress_measure_cp;
+        total_lifts = strategy.total_lifts;
+        successful_lifts = strategy.total_successful_lifts;
     } else {
         loop {
             result = pm.lift_v(id, &vertices, d);

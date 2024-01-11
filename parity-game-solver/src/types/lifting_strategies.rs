@@ -49,6 +49,8 @@ pub struct FocusListLiftingStrategy {
     pub num_failed: i64,
     pub next_vertex: i64,
     pub focus_list: VecDeque<(Vertex, f64)>,
+    pub total_lifts: i64,
+    pub total_successful_lifts: i64,
 }
 
 impl FocusListLiftingStrategy {
@@ -59,39 +61,44 @@ impl FocusListLiftingStrategy {
             num_failed: 0,
             next_vertex: 0,
             focus_list: VecDeque::new(),
+            total_lifts: 0,
+            total_successful_lifts: 0,
         }
     }
 
     pub fn run(
         &mut self,
-        progress_measure: &mut ProgressMeasure,
+        progress_measure_to_clone: &ProgressMeasure,
         vertices: &Vertices,
         max_priority: i64,
         max_size: usize,
         max_attempts: i64,
-    ) {
+    ) -> ProgressMeasure {
         let v_count = vertices.len() as i64;
+        let mut progress_measure: ProgressMeasure = progress_measure_to_clone.clone();
 
         loop {
             self.num_attempts += 1;
 
             if self.phase == 1 {
-                let (pm, did_update) = progress_measure.clone().lift_v(
+                let (pm, did_update) = progress_measure.lift_v(
                     self.next_vertex,
                     vertices,
                     max_priority,
                 );
-                *progress_measure = pm;
+                progress_measure = pm;
+                self.total_lifts += 1;
                 self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
 
                 if did_update {
                     self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2.0));
+                    self.total_successful_lifts += 1;
                 }
 
                 self.next_vertex = (self.next_vertex + 1) % v_count;
 
                 if self.num_failed == v_count {
-                    break;
+                    break progress_measure;
                 }
 
                 if self.num_attempts == v_count || self.focus_list.len() == max_size {
@@ -100,14 +107,16 @@ impl FocusListLiftingStrategy {
                 }
             } else {
                 if let Some((v, credit)) = self.focus_list.pop_front() {
-                    let (pm, did_update) = progress_measure.clone().lift_v(
+                    let (pm, did_update) = progress_measure.lift_v(
                         v.identifier,
                         vertices,
                         max_priority,
                     );
-                    *progress_measure = pm;
+                    progress_measure = pm;
+                    self.total_lifts += 1;
                     if did_update {
                         self.focus_list.push_back((v, credit + 2.0));
+                        self.total_successful_lifts += 1;
                     } else if credit.round() > 0.0 {
                         self.focus_list.push_back((v, credit / 2.0));
                     }
