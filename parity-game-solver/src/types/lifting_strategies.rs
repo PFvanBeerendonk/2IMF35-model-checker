@@ -21,88 +21,26 @@ pub fn least_successor_order(vertices: &Vertices) -> Vec<i64> {
         .collect()
 }
 
+pub fn most_successor_order(vertices: &Vertices) -> Vec<i64> {
+    let mut indices: Vec<usize> = vertices
+        .iter()
+        .enumerate()
+        .filter_map(|(index, v)| v.as_ref().map(|_| index))
+        .collect();
 
-#[derive(Debug)]// Algorithm 4.4 Focus List Lifting Strategy
-pub struct FocusListLiftingStrategy {
-    phase: i64,
-    num_attempts: i64,
-    num_failed: i64,
-    next_vertex: i64,
-    focus_list: VecDeque<(Vertex, i64)>,
+    indices.sort_by_cached_key(|&index| {
+        vertices[index]
+            .as_ref()
+            .map_or(0, |vertex| vertex.successors.len())
+    });
+
+    indices.reverse(); // Reverse the sorted indices to get most to least
+
+    indices
+        .iter()
+        .map(|&index| vertices[index].as_ref().unwrap().identifier)
+        .collect()
 }
-
-impl FocusListLiftingStrategy {
-    pub fn new() -> Self {
-        Self {
-            phase: 1,
-            num_attempts: 0,
-            num_failed: 0,
-            next_vertex: 0,
-            focus_list: VecDeque::new(),
-        }
-    }
-
-    pub fn run(
-        &mut self,
-        progress_measure: &mut ProgressMeasure,
-        vertices: &Vertices,
-        max_priority: i64,
-        max_size: usize,
-        max_attempts: i64,
-    ) {
-        let v_count = vertices.len() as i64;
-
-        loop {
-            self.num_attempts += 1;
-
-            if self.phase == 1 {
-                if let (_pm, did_update) = progress_measure.clone().lift_v(
-                    self.next_vertex,
-                    vertices,
-                    max_priority,
-                ) {
-                    self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
-
-                    if did_update {
-                        self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2));
-                    }
-
-                    self.next_vertex = (self.next_vertex + 1) % v_count;
-
-                    if self.num_failed == v_count {
-                        break;
-                    }
-
-                    if self.num_attempts == v_count || self.focus_list.len() == max_size {
-                        self.phase = 2;
-                        self.num_attempts = 0;
-                    }
-                }
-            } else {
-                if let Some((v, credit)) = self.focus_list.pop_front() {
-                    if let (_pm, did_update) = progress_measure.clone().lift_v(
-                        v.identifier,
-                        vertices,
-                        max_priority,
-                    ) {
-                        if did_update {
-                            self.focus_list.push_back((v, credit + 2));
-                        } else if credit > 0 {
-                            self.focus_list.push_back((v, credit / 2));
-                        }
-                    }
-
-                    if self.focus_list.is_empty() || self.num_attempts == max_attempts {
-                        self.focus_list.clear();
-                        self.phase = 1;
-                        self.num_attempts = 0;
-                    }
-                }
-            }
-        }
-    }
-}
-
 
 #[derive(Default)]
 pub struct PredecessorLiftingStrategy {
