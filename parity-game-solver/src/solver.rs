@@ -1,6 +1,6 @@
 use crate::types::progress_measure::ProgressMeasure;
 use crate::types::vertex::Vertices;
-use crate::types::lifting_strategies::{least_successor_order, most_successor_order, PredecessorLiftingStrategy};
+use crate::types::lifting_strategies::{least_successor_order, most_successor_order, FocusListLiftingStrategy, PredecessorLiftingStrategy};
 
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -15,7 +15,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
 
     // if seed is not set, we follow  order of `vertices`. Otherwise we will use a random seed based function
 
-    let mut pm: ProgressMeasure = progress_measure;
+    let mut pm: ProgressMeasure = progress_measure.clone();
 
     // let mut v: Vertex = vertices[0];
     let mut id: i64 = 0;
@@ -24,11 +24,12 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     let mut result;
     let mut loop_end: bool = false;
 
-    let mut iter: Option<Permutor>;
+    let mut iter: Option<Permutor> = Default::default();
     let length = vertices.len() as u64;
 
     // the vertex identifiers sorted based on the least successor lifting strategy
     let mut least_successor_lifting_strat = Default::default();
+    let mut most_successor_lifting_strat = Default::default();
     let mut predecessor_lifting_strat = Default::default();
 
     // measure the time that the program runs
@@ -43,21 +44,12 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         id = least_successor_lifting_strat.next().unwrap() as i64;
         iter = None;
     } else if lifting_strategy == 3 {
-        let mut strategy = FocusListLiftingStrategy::new();
-
-        let mut progress_measure_cp = progress_measure.clone();
-        strategy.run(
-            &mut progress_measure_cp,
-            &vertices,
-            d,
-            length.try_into().unwrap(),
-            length.try_into().unwrap(),
-        );
-        println!("{:?}", strategy);
+        most_successor_lifting_strat = most_successor_order(&vertices).into_iter();
+        id = most_successor_lifting_strat.next().unwrap() as i64;
         iter = None;
     } else if lifting_strategy == 4 {
+        // The top hashmap always starts empty
         let top: HashMap<i64, bool> = HashMap::new();
-        // Populate top HashMap with your data
         
         // Create an instance of PredecessorLiftingStrategy
         predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
@@ -70,6 +62,18 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         // Access the next vertex in the queue
         id = predecessor_lifting_strat.next().unwrap().identifier as i64;
         iter = None;
+    } else if lifting_strategy == 5 {
+        let mut strategy = FocusListLiftingStrategy::new();
+
+        let mut progress_measure_cp = progress_measure.clone();
+        strategy.run(
+            &mut progress_measure_cp,
+            &vertices,
+            d,
+            length.try_into().unwrap(),
+            length.try_into().unwrap(),
+        );
+        println!("{:?}", strategy);
     } else {
         iter = None;
     }
@@ -86,7 +90,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
             successful_lifts += 1;
         }
         // if the lifting strategy is based on the given input order
-        if lifting_strategy == 0 {
+        if lifting_strategy == 0 || lifting_strategy == 5 {
             id += 1;
             if id == vertices.len() as i64 {
                 id = 0;

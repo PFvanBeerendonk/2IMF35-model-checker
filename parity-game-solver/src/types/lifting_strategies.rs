@@ -21,6 +21,26 @@ pub fn least_successor_order(vertices: &Vertices) -> Vec<i64> {
         .collect()
 }
 
+pub fn most_successor_order(vertices: &Vertices) -> Vec<i64> {
+    let mut indices: Vec<usize> = vertices
+        .iter()
+        .enumerate()
+        .filter_map(|(index, v)| v.as_ref().map(|_| index))
+        .collect();
+
+    indices.sort_by_cached_key(|&index| {
+        vertices[index]
+            .as_ref()
+            .map_or(0, |vertex| vertex.successors.len())
+    });
+
+    indices.reverse(); // Reverse the sorted indices to get most to least
+
+    indices
+        .iter()
+        .map(|&index| vertices[index].as_ref().unwrap().identifier)
+        .collect()
+}
 
 #[derive(Debug)]// Algorithm 4.4 Focus List Lifting Strategy
 pub struct FocusListLiftingStrategy {
@@ -56,11 +76,12 @@ impl FocusListLiftingStrategy {
             self.num_attempts += 1;
 
             if self.phase == 1 {
-                if let (_pm, did_update) = progress_measure.clone().lift_v(
+                if let (pm, did_update) = progress_measure.clone().lift_v(
                     self.next_vertex,
                     vertices,
                     max_priority,
                 ) {
+                    *progress_measure = pm;
                     self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
 
                     if did_update {
@@ -80,11 +101,12 @@ impl FocusListLiftingStrategy {
                 }
             } else {
                 if let Some((v, credit)) = self.focus_list.pop_front() {
-                    if let (_pm, did_update) = progress_measure.clone().lift_v(
+                    if let (pm, did_update) = progress_measure.clone().lift_v(
                         v.identifier,
                         vertices,
                         max_priority,
                     ) {
+                        *progress_measure = pm;
                         if did_update {
                             self.focus_list.push_back((v, credit + 2));
                         } else if credit > 0 {
