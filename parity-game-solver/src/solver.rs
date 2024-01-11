@@ -22,6 +22,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
 
     // the vertex identifiers sorted based on the least successor lifting strategy
     let mut least_successor_lifting_strat = Default::default();
+    let mut most_successor_lifting_strat = Default::default();
     let mut predecessor_lifting_strat = Default::default();
     // if a seed is provided, we will make a hashed iterator
     if lifting_strategy == 1 {
@@ -33,21 +34,12 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         id = least_successor_lifting_strat.next().unwrap() as i64;
         iter = None;
     } else if lifting_strategy == 3 {
-        let mut strategy = FocusListLiftingStrategy::new();
-
-        let mut progress_measure_cp = progress_measure.clone();
-        strategy.run(
-            &mut progress_measure_cp,
-            &vertices,
-            d,
-            length.try_into().unwrap(),
-            length.try_into().unwrap(),
-        );
-        println!("{:?}", strategy);
+        most_successor_lifting_strat = most_successor_order(&vertices).into_iter();
+        id = most_successor_lifting_strat.next().unwrap() as i64;
         iter = None;
     } else if lifting_strategy == 4 {
+        // The top hashmap always starts empty
         let top: HashMap<i64, bool> = HashMap::new();
-        // Populate top HashMap with your data
         
         // Create an instance of PredecessorLiftingStrategy
         predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
@@ -103,6 +95,18 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
                     least_successor_lifting_strat = least_successor_order(&vertices).into_iter();
             
                     id = least_successor_lifting_strat.next().unwrap() as i64;
+                    loop_end = true; // check final loop termination
+                },
+            }
+        } else if lifting_strategy == 3 {
+            match most_successor_lifting_strat.next() {
+                Some(x) => id = x as i64,
+                None => {
+                    // hard reset the iterator
+                    println!("reset!");
+                    most_successor_lifting_strat = most_successor_order(&vertices).into_iter();
+            
+                    id = most_successor_lifting_strat.next().unwrap() as i64;
                     loop_end = true; // check final loop termination
                 },
             }
