@@ -71,9 +71,12 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
             &vertices,
             d,
             length.try_into().unwrap(),
-            length.try_into().unwrap(),
+            (length / 10).try_into().unwrap(),
         );
-        println!("{:?}", strategy);
+        id = strategy.next_vertex;
+        if debug {
+            println!("{:?}", strategy);
+        }
     } else {
         iter = None;
     }
@@ -160,12 +163,12 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
 
     // checking stuff
     let elapsed = now.elapsed();
-    println!("\n###   Finished Calculations   ### (for {} in {:.4?})\n", output.clone().expect("no output file").as_path().display().to_string(), elapsed);
     
 
     let non_t_count = pm.data.iter().flatten().count();
     let size = pm.data.iter().count();
     if output.is_some() {
+        println!("\n###   Finished Calculations   ### (for {} in {:.4?})\n", output.clone().expect("no output file").as_path().display().to_string(), elapsed);
 
         let file = File::create(output.expect("Output file name could not be read").as_path()).expect("Unable to create file");
         let mut f = BufWriter::new(file);
@@ -189,6 +192,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     }
 
     if debug {
+        println!("\n###   Finished Calculations   ### (in {:.4?})\n", elapsed);
         println!("Size:         {}", size);
         println!("Nr of non-T:  {}", non_t_count);
         println!("Nr of T:      {}", size - non_t_count);

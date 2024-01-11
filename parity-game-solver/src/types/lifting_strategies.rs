@@ -45,10 +45,10 @@ pub fn most_successor_order(vertices: &Vertices) -> Vec<i64> {
 #[derive(Debug)]// Algorithm 4.4 Focus List Lifting Strategy
 pub struct FocusListLiftingStrategy {
     phase: i64,
-    num_attempts: i64,
-    num_failed: i64,
-    next_vertex: i64,
-    focus_list: VecDeque<(Vertex, f64)>,
+    pub num_attempts: i64,
+    pub num_failed: i64,
+    pub next_vertex: i64,
+    pub focus_list: VecDeque<(Vertex, f64)>,
 }
 
 impl FocusListLiftingStrategy {
