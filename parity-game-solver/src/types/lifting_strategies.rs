@@ -48,7 +48,7 @@ pub struct FocusListLiftingStrategy {
     num_attempts: i64,
     num_failed: i64,
     next_vertex: i64,
-    focus_list: VecDeque<(Vertex, i64)>,
+    focus_list: VecDeque<(Vertex, f64)>,
 }
 
 impl FocusListLiftingStrategy {
@@ -85,7 +85,7 @@ impl FocusListLiftingStrategy {
                     self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
 
                     if did_update {
-                        self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2));
+                        self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2.0));
                     }
 
                     self.next_vertex = (self.next_vertex + 1) % v_count;
@@ -108,9 +108,9 @@ impl FocusListLiftingStrategy {
                     ) {
                         *progress_measure = pm;
                         if did_update {
-                            self.focus_list.push_back((v, credit + 2));
-                        } else if credit > 0 {
-                            self.focus_list.push_back((v, credit / 2));
+                            self.focus_list.push_back((v, credit + 2.0));
+                        } else if credit.round() > 0.0 {
+                            self.focus_list.push_back((v, credit / 2.0));
                         }
                     }
 
