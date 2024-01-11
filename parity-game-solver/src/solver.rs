@@ -1,6 +1,6 @@
 use crate::types::progress_measure::ProgressMeasure;
 use crate::types::vertex::Vertices;
-use crate::types::lifting_strategies::{least_successor_order, FocusListLiftingStrategy, PredecessorLiftingStrategy};
+use crate::types::lifting_strategies::{least_successor_order, most_successor_order, FocusListLiftingStrategy, PredecessorLiftingStrategy};
 
 use permutation_iterator::Permutor;
 use std::collections::HashMap;
@@ -17,7 +17,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     let mut result;
     let mut loop_end: bool = false;
 
-    let mut iter: Option<Permutor>;
+    let mut iter: Option<Permutor> = Default::default();
     let length = vertices.len() as u64;
 
     // the vertex identifiers sorted based on the least successor lifting strategy
@@ -60,6 +60,18 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         // Access the next vertex in the queue
         id = predecessor_lifting_strat.next().unwrap().identifier as i64;
         iter = None;
+    } else if lifting_strategy == 5 {
+        let mut strategy = FocusListLiftingStrategy::new();
+
+        let mut progress_measure_cp = progress_measure.clone();
+        strategy.run(
+            &mut progress_measure_cp,
+            &vertices,
+            d,
+            length.try_into().unwrap(),
+            length.try_into().unwrap(),
+        );
+        println!("{:?}", strategy);
     } else {
         iter = None;
     }
@@ -75,7 +87,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
             did_update_this_master_loop = true;
         }
         // if the lifting strategy is based on the given input order
-        if lifting_strategy == 0 || lifting_strategy == 3 {
+        if lifting_strategy == 0 || lifting_strategy == 5{
             id += 1;
             if id == vertices.len() as i64 {
                 id = 0;

@@ -31,6 +31,15 @@ pub struct FocusListLiftingStrategy {
     focus_list: VecDeque<(Vertex, i64)>,
 }
 
+#[derive(Debug)]// Algorithm 4.4 Focus List Lifting Strategy
+pub struct FocusListLiftingStrategy {
+    phase: i64,
+    num_attempts: i64,
+    num_failed: i64,
+    next_vertex: i64,
+    focus_list: VecDeque<(Vertex, i64)>,
+}
+
 impl FocusListLiftingStrategy {
     pub fn new() -> Self {
         Self {
