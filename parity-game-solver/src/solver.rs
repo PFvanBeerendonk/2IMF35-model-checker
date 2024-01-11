@@ -54,11 +54,6 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         // Create an instance of PredecessorLiftingStrategy
         predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
     
-        // Perform lifting for a vertex and its predecessors
-        if let Some(some_vertex) = vertices[0].as_ref() {
-            predecessor_lifting_strat.lifted(some_vertex, &vertices, &top);
-        }
-    
         // Access the next vertex in the queue
         id = predecessor_lifting_strat.next().unwrap().identifier as i64;
         iter = None;
@@ -168,7 +163,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     let non_t_count = pm.data.iter().flatten().count();
     let size = pm.data.iter().count();
     if output.is_some() {
-        println!("\n###   Finished Calculations   ### (for {} in {:.4?})\n", output.clone().expect("no output file").as_path().display().to_string(), elapsed);
+        println!("###   Finished Calculations   ### (for {} in {:.4?})", output.clone().expect("no output file").as_path().display().to_string(), elapsed);
 
         let file = File::create(output.expect("Output file name could not be read").as_path()).expect("Unable to create file");
         let mut f = BufWriter::new(file);

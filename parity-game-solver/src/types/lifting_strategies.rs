@@ -76,42 +76,40 @@ impl FocusListLiftingStrategy {
             self.num_attempts += 1;
 
             if self.phase == 1 {
-                if let (pm, did_update) = progress_measure.clone().lift_v(
+                let (pm, did_update) = progress_measure.clone().lift_v(
                     self.next_vertex,
                     vertices,
                     max_priority,
-                ) {
-                    *progress_measure = pm;
-                    self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
+                );
+                *progress_measure = pm;
+                self.num_failed = if did_update { 0 } else { self.num_failed + 1 };
 
-                    if did_update {
-                        self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2.0));
-                    }
+                if did_update {
+                    self.focus_list.push_back((vertices[self.next_vertex as usize].clone().unwrap(), 2.0));
+                }
 
-                    self.next_vertex = (self.next_vertex + 1) % v_count;
+                self.next_vertex = (self.next_vertex + 1) % v_count;
 
-                    if self.num_failed == v_count {
-                        break;
-                    }
+                if self.num_failed == v_count {
+                    break;
+                }
 
-                    if self.num_attempts == v_count || self.focus_list.len() == max_size {
-                        self.phase = 2;
-                        self.num_attempts = 0;
-                    }
+                if self.num_attempts == v_count || self.focus_list.len() == max_size {
+                    self.phase = 2;
+                    self.num_attempts = 0;
                 }
             } else {
                 if let Some((v, credit)) = self.focus_list.pop_front() {
-                    if let (pm, did_update) = progress_measure.clone().lift_v(
+                    let (pm, did_update) = progress_measure.clone().lift_v(
                         v.identifier,
                         vertices,
                         max_priority,
-                    ) {
-                        *progress_measure = pm;
-                        if did_update {
-                            self.focus_list.push_back((v, credit + 2.0));
-                        } else if credit.round() > 0.0 {
-                            self.focus_list.push_back((v, credit / 2.0));
-                        }
+                    );
+                    *progress_measure = pm;
+                    if did_update {
+                        self.focus_list.push_back((v, credit + 2.0));
+                    } else if credit.round() > 0.0 {
+                        self.focus_list.push_back((v, credit / 2.0));
                     }
 
                     if self.focus_list.is_empty() || self.num_attempts == max_attempts {
@@ -147,17 +145,6 @@ impl PredecessorLiftingStrategy {
         }
 
         PredecessorLiftingStrategy { queued, queue }
-    }
-
-    pub fn lifted(&mut self, v: &Vertex, predecessors: &Vertices, top: &HashMap<i64, bool>) {
-        for (w_index, w_option) in predecessors.iter().enumerate() {
-            if let Some(w) = w_option {
-                if !self.queued[w.identifier as usize] && (!top.contains_key(&w.identifier) || !top[&w.identifier]) {
-                    self.queued[w.identifier as usize] = true;
-                    self.queue.push_back(w.clone());
-                }
-            }
-        }
     }
 
     pub fn next(&mut self) -> Option<Vertex> {
