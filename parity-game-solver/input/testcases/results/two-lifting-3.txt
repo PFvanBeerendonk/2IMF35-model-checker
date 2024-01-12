@@ -1,0 +1,12 @@
+Size:          2
+Nr of non-T:   1
+Nr of T:       1
+Time:          21.1000µs
+Nr of Lifts:   4
+Success lifts: 1
+
+
+ID         | ϱ()
+-----------+------------------------------------
+0          | [0, 0]
+1          | T
