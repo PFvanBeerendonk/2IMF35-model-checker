@@ -128,7 +128,7 @@ def create_lifts_bar_chart(folder_path, file_name):
     plt.close()
 
 if __name__ == "__main__":
-    folder_path = "./../output4/elevator_games/"  # Replace with the actual folder path
+    folder_path = "./../input/testcases/results/"  # Replace with the actual folder path
 
     for file_name in set(file.split("-lifting")[0] for file in os.listdir(folder_path) if file.endswith(".txt") and "lifting" in file):
         create_time_bar_chart(folder_path, file_name)
