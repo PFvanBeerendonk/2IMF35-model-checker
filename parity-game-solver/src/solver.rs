@@ -24,7 +24,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
     let mut result;
     let mut loop_end: bool = false;
 
-    let mut iter: Option<Permutor> = Default::default();
+    let mut iter: Option<Permutor>;
     let length = vertices.len() as u64;
 
     // the vertex identifiers sorted based on the least successor lifting strategy
@@ -57,24 +57,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         // Access the next vertex in the queue
         id = predecessor_lifting_strat.next().unwrap().identifier as i64;
         iter = None;
-    } 
-    // else if lifting_strategy == 5 {
-    //     let mut strategy = FocusListLiftingStrategy::new();
-
-    //     let mut progress_measure_cp = progress_measure.clone();
-    //     strategy.run(
-    //         &mut progress_measure_cp,
-    //         &vertices,
-    //         d,
-    //         (length / 10).try_into().unwrap(),
-    //         length.try_into().unwrap(),
-    //     );
-    //     id = strategy.next_vertex;
-    //     if debug {
-    //         println!("{:?}", strategy);
-    //     }
-    // } 
-    else {
+    } else {
         iter = None;
     }
 
@@ -141,8 +124,11 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
                             .filter_map(|(i, row)| if row.is_none() { Some((i as i64, true)) } else { None })
                             .collect();
                         predecessor_lifting_strat = PredecessorLiftingStrategy::new(&vertices, &top);
-                
-                        id = predecessor_lifting_strat.next().unwrap().identifier;
+                        
+                        let next_lift = predecessor_lifting_strat.next();
+                        if next_lift.is_some() {
+                            id = next_lift.unwrap().identifier;
+                        }
                         loop_end = true; // check final loop termination
                     },
                 }
