@@ -1,4 +1,4 @@
-
+parity-game-solver/output*/
 model-checker/target/
 parity-game-solver/target/
-parity-game-solver/output*/
+parity-game-solver/graphs/
