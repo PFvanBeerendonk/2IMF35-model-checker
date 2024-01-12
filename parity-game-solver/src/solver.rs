@@ -87,7 +87,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
                 successful_lifts += 1;
             }
             // if the lifting strategy is based on the given input order
-            if lifting_strategy == 0 || lifting_strategy == 5 {
+            if lifting_strategy == 0  {
                 id += 1;
                 if id == vertices.len() as i64 {
                     id = 0;
