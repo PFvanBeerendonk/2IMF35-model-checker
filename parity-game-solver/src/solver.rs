@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use permutation_iterator::Permutor;
 use std::collections::HashMap;
 use std::time::Instant;
+use std::cmp::max;
 
 pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64, lifting_strategy: i64, seed: Option<i64>, output: Option<PathBuf>, debug: bool) {
     let mut total_lifts = 0;
@@ -69,7 +70,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
             &progress_measure,
             &vertices,
             d,
-            (length / 10).try_into().unwrap(),
+            max((length / 10).try_into().unwrap(), 1),
             length.try_into().unwrap(),
         );
         total_lifts = strategy.total_lifts;
