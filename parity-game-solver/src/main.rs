@@ -43,7 +43,9 @@ struct Args {
     /// 0 for "input order" lifting strategy
     /// 1 for "random order" lifting strategy
     /// 2 for "least successors" lifting strategy
-    /// 3 for fourth lifting strategy TODO
+    /// 3 for "most successors" lifting strategy
+    /// 4 for predecessors lifting strategy
+    /// 5 for "focus list" lifting strategy
     #[arg(short, long, default_value_t=0, verbatim_doc_comment, conflicts_with="multiple_lifting_strategies")]
     lifting_strategy: i64,
 
