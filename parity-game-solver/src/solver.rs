@@ -78,7 +78,7 @@ pub fn main_algo(progress_measure: ProgressMeasure, vertices: &Vertices, d: i64,
         iter = None;
     }
 
-    let mut pm_to_return; 
+    let pm_to_return; 
 
     if lifting_strategy == 5 {
         let mut strategy = FocusListLiftingStrategy::new();
